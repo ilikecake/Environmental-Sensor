@@ -1,4 +1,4 @@
-Environmental-Sensor
-====================
+Environmental Sensor
+==============
 
-Code for my environmental sensor project
+Code for the environmental sensor.
