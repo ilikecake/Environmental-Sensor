@@ -29,12 +29,22 @@
 #ifndef _CONFIG_H_
 #define _CONFIG_H_
 
-//Config for the TWI module
-#define	TWI_USER_CONFIG							//Define this in your user code to allow use of the TWI module
-#undef	TWI_USE_ISR								//Define this to enable interrupt driven TWI interface (this code does not work).
-#define	_TWI_DEBUG								//Define this to enable the output of debug messages.
-#undef	TWI_USE_INTERNAL_PULLUPS				//Define this to use the internal pull-up resistors of the device.
-#define	TWI_SCL_FREQ_HZ				100000		//Set the SCL frequency
+
+
+#define I2C_SOFT_USER_CONFIG
+#define I2C_SOFT_USE_INTERNAL_PULLUPS		1		//Set to 1 to use internal pullups on the pins
+#define I2C_SOFT_USE_ARBITRATION			1		//Set to 1 to enable arbitration
+#define I2C_SOFT_USE_CLOCK_STRETCH			1		//Set to 1 to enable clock stretching detection
+#define I2C_SOFT_CLOCK_STRETCH_TIMEOUT		1000	//The timeout for the clock stretching, this is a 16-bit number
+
+#define I2C_SDA_PORT			PORTC
+#define I2C_SDA_DDR				DDRC
+#define I2C_SDA_PIN				PINC
+#define I2C_SDA_PIN_NUM			6
+#define I2C_SCL_PORT			PORTB
+#define I2C_SCL_DDR				DDRB
+#define I2C_SCL_PIN				PINB
+#define I2C_SCL_PIN_NUM			7
 
 #endif
 

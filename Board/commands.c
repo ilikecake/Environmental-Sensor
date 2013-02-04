@@ -44,11 +44,11 @@ const char _F2_NAME[] PROGMEM 			= "dfu";
 const char _F2_DESCRIPTION[] PROGMEM 	= "Jump to bootloader";
 const char _F2_HELPTEXT[] PROGMEM 		= "'dfu' has no parameters";
 
-//Get time from RTC
+//Read a register
 static int _F3_Handler (void);
-const char _F3_NAME[] PROGMEM 			= "gettime";
-const char _F3_DESCRIPTION[] PROGMEM 	= "Show the current date and time";
-const char _F3_HELPTEXT[] PROGMEM 		= "'gettime' has no parameters";
+const char _F3_NAME[] PROGMEM 			= "regread";
+const char _F3_DESCRIPTION[] PROGMEM 	= "Read a register from the TCS3414FN";
+const char _F3_HELPTEXT[] PROGMEM 		= "regread <register #>";
 
 //Set time on RTC
 static int _F4_Handler (void);
@@ -103,7 +103,7 @@ const CommandListItem AppCommandList[] PROGMEM =
 {
 	{ _F1_NAME,		1,  1,	_F1_Handler,	_F1_DESCRIPTION,	_F1_HELPTEXT	},		//led
 	{ _F2_NAME, 	0,  0,	_F2_Handler,	_F2_DESCRIPTION,	_F2_HELPTEXT	},		//dfu
-	{ _F3_NAME, 	0,  0,	_F3_Handler,	_F3_DESCRIPTION,	_F3_HELPTEXT	},		//gettime
+	{ _F3_NAME, 	1,  1,	_F3_Handler,	_F3_DESCRIPTION,	_F3_HELPTEXT	},		//regread
 	{ _F4_NAME, 	7,  7,	_F4_Handler,	_F4_DESCRIPTION,	_F4_HELPTEXT	},		//settime
 	{ _F5_NAME, 	1,  1,	_F5_Handler,	_F5_DESCRIPTION,	_F5_HELPTEXT	},		//adread
 	{ _F6_NAME, 	2,  2,	_F6_Handler,	_F6_DESCRIPTION,	_F6_HELPTEXT	},		//adwrite	
@@ -119,36 +119,8 @@ const CommandListItem AppCommandList[] PROGMEM =
 //LED control function
 static int _F1_Handler (void)
 {
-	
-	
 	LED((uint8_t)argAsInt(1));
 	return 0;
-	/*
-	uint8_t tempData;
-	
-	
-	if( NumberOfArguments() == 1 )
-	{
-		if(argAsInt(1) == 1)
-		{
-			//MAX7315WriteReg(MAX7315_REG_BLINK0, 0x00);
-		}
-		else
-		{
-			//MAX7315WriteReg(MAX7315_REG_BLINK0, 0xFF);
-		}
-	}
-	else if(argAsInt(1) == 4)	//Read a register from the expander.
-	{
-		//MAX7315ReadReg(argAsInt(2), &tempData);
-		printf_P(PSTR("reg: 0x%02X\n"), tempData);
-	}
-	
-	else
-	{
-		//LED( (uint8_t)argAsInt(1), (uint8_t)argAsInt(2) );
-	}
-	return 0;*/
 }
 
 //Jump to DFU bootloader
@@ -167,27 +139,26 @@ static int _F2_Handler (void)
 	return 0;
 }
 
-//Get time from RTC
+//Read a register
 static int _F3_Handler (void)
 {
 	uint8_t DataToSend;
 	uint8_t DataToReceive = 0;
-	DataToSend = (0x04 | 0x80);
+	DataToSend = argAsInt(1);
 	
-	printf_P(PSTR("Getting ID Register...\n"));
+	if( (DataToSend == 5) || (DataToSend == 6) || ((DataToSend > 0x0B) && (DataToSend < 0x10)) || (DataToSend > 0x17) )
+	{
+		//Illegal register
+		return 0;
+	}
+	
+	printf_P(PSTR("reg[0x%02X]: "), DataToSend);
+	
+	DataToSend |= 0x80;
 	
 	I2CSoft_RW(0x39, &DataToSend, &DataToReceive, 1, 1);
 
-	printf_P(PSTR("Read: 0x%02X\n"), DataToReceive);
-
-	//TimeAndDate CurrentTime;
-	//if(DS1390GetTime(&CurrentTime) != 0)
-	//{
-	//	printf_P(PSTR("Error\n"));
-	///	return 0;
-	//}
-	
-	//printf_P(PSTR("%02d/%02d/20%02d %02d:%02d:%02d\n"), CurrentTime.month, CurrentTime.day, CurrentTime.year, CurrentTime.hour, CurrentTime.min, CurrentTime.sec);
+	printf_P(PSTR("0x%02X\n"), DataToReceive);
 	return 0;
 }
 

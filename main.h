@@ -51,10 +51,10 @@
 		#include <LUFA-120730/Drivers/USB/USB.h>
 		#include <LUFA-120730/Drivers/Peripheral/SPI.h>
 		
-		#include "twi.h"
+		#include "i2c_soft.h"
 		
 		#include "Board/Hardware.h"
-		#include "Board/i2c_soft.h"
+		
 		#include "commands.h"
 		#include "dfu_jump.h"
 		
