@@ -50,17 +50,17 @@ const char _F3_NAME[] PROGMEM 			= "regread";
 const char _F3_DESCRIPTION[] PROGMEM 	= "Read a register from the TCS3414FN";
 const char _F3_HELPTEXT[] PROGMEM 		= "regread <register #>";
 
-//Set time on RTC
+//Set time on the internal timer
 static int _F4_Handler (void);
 const char _F4_NAME[] PROGMEM 			= "settime";
 const char _F4_DESCRIPTION[] PROGMEM 	= "Set the time";
-const char _F4_HELPTEXT[] PROGMEM 		= "settime <month> <day> <year> <hr> <min> <sec> <dow>";
+const char _F4_HELPTEXT[] PROGMEM 		= "settime <day> <hr> <min> <sec>";
 
-//Read a register from the ADC
+//Read the time from the internal timer
 static int _F5_Handler (void);
-const char _F5_NAME[] PROGMEM 			= "adread";
-const char _F5_DESCRIPTION[] PROGMEM 	= "Read a register from the ADC";
-const char _F5_HELPTEXT[] PROGMEM 		= "adread <register>";
+const char _F5_NAME[] PROGMEM 			= "gettime";
+const char _F5_DESCRIPTION[] PROGMEM 	= "Get the time from the internal timer";
+const char _F5_HELPTEXT[] PROGMEM 		= "'gettime' has not parameters";
 
 //Write a register to the ADC
 static int _F6_Handler (void);
@@ -104,8 +104,8 @@ const CommandListItem AppCommandList[] PROGMEM =
 	{ _F1_NAME,		1,  1,	_F1_Handler,	_F1_DESCRIPTION,	_F1_HELPTEXT	},		//led
 	{ _F2_NAME, 	0,  0,	_F2_Handler,	_F2_DESCRIPTION,	_F2_HELPTEXT	},		//dfu
 	{ _F3_NAME, 	1,  1,	_F3_Handler,	_F3_DESCRIPTION,	_F3_HELPTEXT	},		//regread
-	{ _F4_NAME, 	7,  7,	_F4_Handler,	_F4_DESCRIPTION,	_F4_HELPTEXT	},		//settime
-	{ _F5_NAME, 	1,  1,	_F5_Handler,	_F5_DESCRIPTION,	_F5_HELPTEXT	},		//adread
+	{ _F4_NAME, 	4,  4,	_F4_Handler,	_F4_DESCRIPTION,	_F4_HELPTEXT	},		//settime
+	{ _F5_NAME, 	0,  0,	_F5_Handler,	_F5_DESCRIPTION,	_F5_HELPTEXT	},		//gettime
 	{ _F6_NAME, 	2,  2,	_F6_Handler,	_F6_DESCRIPTION,	_F6_HELPTEXT	},		//adwrite	
 	{ _F8_NAME,		1,  1,	_F8_Handler,	_F8_DESCRIPTION,	_F8_HELPTEXT	},		//beep
 	{ _F9_NAME,		1,  1,	_F9_Handler,	_F9_DESCRIPTION,	_F9_HELPTEXT	},		//relay
@@ -162,49 +162,32 @@ static int _F3_Handler (void)
 	return 0;
 }
 
-//Set time on RTC
+//Set time on the internal timer
 static int _F4_Handler (void)
 {
-	//TimeAndDate CurrentTime;
+	TimeAndDate CurrentTime;
 	
-	/*CurrentTime.month	= argAsInt(1);
-	CurrentTime.day		= argAsInt(2);
-	CurrentTime.year	= argAsInt(3);
-	CurrentTime.hour	= argAsInt(4);
-	CurrentTime.min		= argAsInt(5);
-	CurrentTime.sec		= argAsInt(6);
-	CurrentTime.dow		= argAsInt(7);*/
+	CurrentTime.month	= 0;
+	CurrentTime.day		= argAsInt(1);
+	CurrentTime.year	= 0;
+	CurrentTime.hour	= argAsInt(2);
+	CurrentTime.min		= argAsInt(3);
+	CurrentTime.sec		= argAsInt(4);
+	CurrentTime.dow		= 0;
 	
-	//if(DS1390SetTime(&CurrentTime) != 0)
-	//{
-	//	printf_P(PSTR("Error\n"));
-	//	return 0;
-	//}
+	SetTime(CurrentTime);
 	
 	printf_P(PSTR("Done\n"));
 	return 0;
 }
 
-//Read a register from the ADC
+//Read the time from the internal timer
 static int _F5_Handler (void)
 {
-	uint8_t data[3];
-	uint8_t regToRead = argAsInt(1);
+	TimeAndDate CurrentTime;
 	
-	data[0] = 0xFA;
-	data[1] = 0xFA;
-	data[2] = 0xFA;
-
-	/*if(AD7794ReadReg(regToRead, data) == true)
-	{
-		printf_P(PSTR("Data[0]: 0x%02X\n"), data[0]);
-		printf_P(PSTR("Data[1]: 0x%02X\n"), data[1]);
-		printf_P(PSTR("Data[2]: 0x%02X\n"), data[2]);
-	}
-	else
-	{
-		printf_P(PSTR("Error\n"));
-	}*/
+	GetTime(&CurrentTime);
+	printf_P(PSTR("%02u Days %02u:%02u:%02u\n"), CurrentTime.day, CurrentTime.hour, CurrentTime.min, CurrentTime.sec);
 
 	return 0;
 }
