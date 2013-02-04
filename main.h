@@ -47,17 +47,20 @@
 
 		#include "Descriptors.h"
 
+		//Lufa includes
 		#include <LUFA-120730/Drivers/Board/LEDs.h>
 		#include <LUFA-120730/Drivers/USB/USB.h>
 		#include <LUFA-120730/Drivers/Peripheral/SPI.h>
 		
+		//Common module includes
 		#include "common_types.h"
 		#include "i2c_soft.h"
-		
-		#include "Board/Hardware.h"
-		
 		#include "commands.h"
 		#include "dfu_jump.h"
+		
+		//Board includes
+		#include "Board/Hardware.h"
+		#include "Board/tcs3414.h"
 		
 	/* Macros: */
 		/** LED mask for the library LED driver, to indicate that the USB interface is not ready. */

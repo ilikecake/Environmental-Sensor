@@ -65,7 +65,11 @@ void HardwareInit( void )
 	TCCR0B = 0x03;
 	TIMSK0 = 0x02;
 	OCR0A = 124;
-
+	
+	//Enable interrupts globally
+	sei();
+	
+	
 	//Setup GPIO Pins
 	
 	//PORT B:
@@ -84,12 +88,12 @@ void HardwareInit( void )
 	DDRD = (1<<2);
 	PORTD = 0x00;
 	
-	//Initalize peripherals
-	
 	//Enable USB and interrupts
 	I2CSoft_Init();
 	USB_Init();
-	sei();
+	
+	//Initalize peripherals
+	tcs3414_Init();
 	
 	return;
 }

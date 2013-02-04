@@ -62,11 +62,11 @@ const char _F5_NAME[] PROGMEM 			= "gettime";
 const char _F5_DESCRIPTION[] PROGMEM 	= "Get the time from the internal timer";
 const char _F5_HELPTEXT[] PROGMEM 		= "'gettime' has not parameters";
 
-//Write a register to the ADC
+//Write a register
 static int _F6_Handler (void);
-const char _F6_NAME[] PROGMEM 			= "adwrite";
-const char _F6_DESCRIPTION[] PROGMEM 	= "write to a register on the ADC";
-const char _F6_HELPTEXT[] PROGMEM 		= "adwrite <register> <data>";
+const char _F6_NAME[] PROGMEM 			= "regwrite";
+const char _F6_DESCRIPTION[] PROGMEM 	= "write to a register";
+const char _F6_HELPTEXT[] PROGMEM 		= "regwrite <register> <data>";
 
 //Test the buzzer
 static int _F8_Handler (void);
@@ -106,7 +106,7 @@ const CommandListItem AppCommandList[] PROGMEM =
 	{ _F3_NAME, 	1,  1,	_F3_Handler,	_F3_DESCRIPTION,	_F3_HELPTEXT	},		//regread
 	{ _F4_NAME, 	4,  4,	_F4_Handler,	_F4_DESCRIPTION,	_F4_HELPTEXT	},		//settime
 	{ _F5_NAME, 	0,  0,	_F5_Handler,	_F5_DESCRIPTION,	_F5_HELPTEXT	},		//gettime
-	{ _F6_NAME, 	2,  2,	_F6_Handler,	_F6_DESCRIPTION,	_F6_HELPTEXT	},		//adwrite	
+	{ _F6_NAME, 	2,  2,	_F6_Handler,	_F6_DESCRIPTION,	_F6_HELPTEXT	},		//writereg	
 	{ _F8_NAME,		1,  1,	_F8_Handler,	_F8_DESCRIPTION,	_F8_HELPTEXT	},		//beep
 	{ _F9_NAME,		1,  1,	_F9_Handler,	_F9_DESCRIPTION,	_F9_HELPTEXT	},		//relay
 	{ _F10_NAME,	0,  0,	_F10_Handler,	_F10_DESCRIPTION,	_F10_HELPTEXT	},		//cal
@@ -142,23 +142,18 @@ static int _F2_Handler (void)
 //Read a register
 static int _F3_Handler (void)
 {
-	uint8_t DataToSend;
 	uint8_t DataToReceive = 0;
-	DataToSend = argAsInt(1);
+	uint8_t DataToSend = argAsInt(1);
 	
-	if( (DataToSend == 5) || (DataToSend == 6) || ((DataToSend > 0x0B) && (DataToSend < 0x10)) || (DataToSend > 0x17) )
+	if(tcs3414_ReadReg(DataToSend, &DataToReceive) == 0)
 	{
-		//Illegal register
-		return 0;
+		printf_P(PSTR("reg[0x%02X]: 0x%02X\n"), DataToSend, DataToReceive);
+	}
+	else
+	{
+		printf_P(PSTR("Error\n"));
 	}
 	
-	printf_P(PSTR("reg[0x%02X]: "), DataToSend);
-	
-	DataToSend |= 0x80;
-	
-	I2CSoft_RW(0x39, &DataToSend, &DataToReceive, 1, 1);
-
-	printf_P(PSTR("0x%02X\n"), DataToReceive);
 	return 0;
 }
 
@@ -192,39 +187,20 @@ static int _F5_Handler (void)
 	return 0;
 }
 
-//Write a register to the ADC
+//Write a register
 static int _F6_Handler (void)
 {
 	uint8_t RegToWrite = argAsInt(1);
 	uint32_t DataToWrite = argAsInt(2);
 
-	/*uint8_t data[3];
-	
-	if(RegToWrite == 5)
+	if(tcs3414_WriteReg(RegToWrite, DataToWrite) == 0)
 	{
-		data[0] =  (DataToWrite & 0xFF);
-	}
-	else if( (RegToWrite == 1) || (RegToWrite == 2) )
-	{
-		data[0] = ((DataToWrite >> 8) & 0xFF);
-		data[1] = (DataToWrite & 0xFF);
-	}
-	else if( (RegToWrite == 6) || (RegToWrite == 7) )
-	{
-		data[0] = ((DataToWrite >> 16) & 0xFF);
-		data[1] = ((DataToWrite >> 8) & 0xFF);
-		data[2] = (DataToWrite& 0xFF);
+		printf_P(PSTR("OK\n"));
 	}
 	else
 	{
-		return 0;
+		printf_P(PSTR("Error\n"));
 	}
-	
-	printf("Data[0]: 0x%02X\n", data[0]);
-	printf("Data[1]: 0x%02X\n", data[1]);
-	printf("Data[2]: 0x%02X\n", data[2]);
-	
-	AD7794WriteReg(RegToWrite, data);*/
 
 	return 0;
 }
@@ -436,14 +412,7 @@ static int _F11_Handler (void)
 //Scan the TWI bus for devices
 static int _F12_Handler (void)
 {
-	//SPI_Disable();
-	//InitTWI();
-
-	//TWIScan();
-	
-	//DeinitTWI();
-	//SPI_Init(SPI_SPEED_FCPU_DIV_2 | SPI_ORDER_MSB_FIRST | SPI_SCK_LEAD_FALLING | SPI_SAMPLE_TRAILING | SPI_MODE_MASTER);
-	
+	I2CSoft_Scan();
 	return  0;
 }
 
