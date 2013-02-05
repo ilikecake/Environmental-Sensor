@@ -73,6 +73,6 @@ uint8_t tcs3414_IsReg(uint8_t Reg);
 
 void tcs3414_Init( void );
 
-uint8_t tcs3414_GetData( void );
+uint8_t tcs3414_GetData(uint16_t *RedData, uint16_t *GreenData, uint16_t *BlueData, uint16_t *ClearData);
 
 #endif

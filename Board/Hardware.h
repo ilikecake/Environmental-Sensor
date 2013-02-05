@@ -39,10 +39,10 @@ void DelayMS(uint16_t ms);
 void GetTime( TimeAndDate *time );
 void SetTime( TimeAndDate time );
 
-/*
+
 void StartTimer(void);
-void StopTimer(uint16_t *FinalMS, uint16_t *FinalSEC);
-void RestartTimer(uint16_t *FinalMS, uint16_t *FinalSEC);*/
+void StopTimer(void);
+/*void RestartTimer(uint16_t *FinalMS, uint16_t *FinalSEC);*/
 
 void LED(uint8_t LEDState);
 

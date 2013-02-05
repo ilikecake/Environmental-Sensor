@@ -79,38 +79,37 @@ uint8_t tcs3414_IsReg(uint8_t Reg)
 	return 1;
 }
 
-uint8_t tcs3414_GetData( void )
+uint8_t tcs3414_GetData(uint16_t *RedData, uint16_t *GreenData, uint16_t *BlueData, uint16_t *ClearData)
 {
 	uint8_t i;
 	uint8_t DataToSend;
 	uint8_t DataToReceive[8];
 	
-	uint16_t Red = 0;
-	uint16_t Green = 0;
-	uint16_t Blue = 0;
-	uint16_t Clear = 0;
+	//uint16_t Red = 0;
+	//uint16_t Green = 0;
+	//uint16_t Blue = 0;
+	//uint16_t Clear = 0;
 	
+	tcs3414_ReadReg(TCS3414_REG_CONTROL, DataToReceive);
 	
+	if((DataToReceive[0] & TCS3414_CONTROL_ADC_VALID_MASK) != TCS3414_CONTROL_ADC_VALID_MASK)
+	{
+		//ADC data is not valid
+		return 0xFF;
+	}
 	
-
 	DataToSend = 0xCF;
 	if(I2CSoft_RW(TCS3414_I2C_ADDR, &DataToSend, DataToReceive, 1, 8) == 0)
 	{
-		//for(i=0;i<8;i++)
-		//{
-		//	printf("dat[%u]: 0x%02X\n", i+1, DataToReceive[i]);
-		//}
+		*RedData = (DataToReceive[2] | (DataToReceive[3] << 8));
+		*GreenData = (DataToReceive[0] | (DataToReceive[1] << 8));
+		*BlueData = (DataToReceive[4] | (DataToReceive[5] << 8));
+		*ClearData = (DataToReceive[6] | (DataToReceive[7] << 8));
 		
-		
-		Red = (DataToReceive[2] | (DataToReceive[3] << 8));
-		Green = (DataToReceive[0] | (DataToReceive[1] << 8));
-		Blue = (DataToReceive[4] | (DataToReceive[5] << 8));
-		Clear = (DataToReceive[6] | (DataToReceive[7] << 8));
-		
-		printf("red:	0x%04X\n", Red);
-		printf("green:	0x%04X\n", Green);
-		printf("blue:	0x%04X\n", Blue);
-		printf("clear:	0x%04X\n", Clear);
+		//printf("red:	0x%04X\n", Red);
+		//printf("green:	0x%04X\n", Green);
+		//printf("blue:	0x%04X\n", Blue);
+		//printf("clear:	0x%04X\n", Clear);
 		
 		return 0x00;
 	}

@@ -208,9 +208,16 @@ static int _F6_Handler (void)
 //Get a set of data from the devices
 static int _F8_Handler (void)
 {
+	uint16_t LS_Data[4];
 
-	tcs3414_GetData();
+	StartTimer();
+	tcs3414_GetData(&LS_Data[0], &LS_Data[1], &LS_Data[2], &LS_Data[3]);
+	StopTimer();
 
+	printf("red:	0x%04X\n", LS_Data[0]);
+	printf("green:	0x%04X\n", LS_Data[1]);
+	printf("blue:	0x%04X\n", LS_Data[2]);
+	printf("clear:	0x%04X\n", LS_Data[3]);
 
 
 	return 0;

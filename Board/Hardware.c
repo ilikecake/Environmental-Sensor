@@ -25,6 +25,15 @@
 
 #include "main.h"
 
+#define HARDWARE_TIMER_0_TOP_VALUE	124
+
+//Global variables needed for the timer
+TimeAndDate TimerStartTime;
+volatile uint16_t TimerStartMS;
+volatile uint8_t TimerRemainder;
+volatile uint8_t TimerRunning;
+
+//Global variables needed for the RTC
 TimeAndDate TheTime;
 volatile uint16_t ElapsedMS;
 
@@ -42,6 +51,7 @@ void HardwareInit( void )
 	TheTime.day		= 0;
 	TheTime.month	= 0;
 	TheTime.year	= 0;
+	TimerRunning = 0;
 	
 	//Disable watchdog if enabled by bootloader/fuses
 	MCUSR &= ~(1 << WDRF);
@@ -64,7 +74,7 @@ void HardwareInit( void )
 	TCCR0A = 0x02;
 	TCCR0B = 0x03;
 	TIMSK0 = 0x02;
-	OCR0A = 124;
+	OCR0A = HARDWARE_TIMER_0_TOP_VALUE;
 	
 	//Enable interrupts globally
 	sei();
@@ -159,6 +169,89 @@ void SetTime( TimeAndDate TimeToSet )
 	return;
 }
 
+void StartTimer(void)
+{
+	TimerStartTime.day = TheTime.day;
+	TimerStartTime.hour = TheTime.hour;
+	TimerStartTime.min = TheTime.min;
+	TimerStartTime.sec = TheTime.sec;
+	TimerStartMS = ElapsedMS;
+	TimerRemainder = TCNT0;
+	TimerRunning = 1;
+
+	return;
+}
+
+
+void StopTimer(void)
+{
+	//TODO: add a check to see if the timer is running.
+	TimeAndDate TimerEndTime;
+	uint8_t TimerEndRemainder = 0;
+	uint16_t ElapsedUS;
+	uint16_t TimerEndMS;
+	
+	if(TimerRunning == 1)
+	{
+		//Get final timer value
+		TimerEndTime.day = TheTime.day;
+		TimerEndTime.hour = TheTime.hour;
+		TimerEndTime.min = TheTime.min;
+		TimerEndTime.sec = TheTime.sec;
+		TimerEndMS = ElapsedMS;
+		TimerEndRemainder = TCNT0;
+		
+		
+		
+		printf("Time: %02u sec %04u ms %04u us\n", TimerEndTime.sec-TimerStartTime.sec, TimerEndMS-TimerStartMS , (HARDWARE_TIMER_0_TOP_VALUE - TimerRemainder) + TimerEndRemainder);
+		
+		
+		
+		
+		
+		
+		
+		//TimerEndMS
+		//ElapsedUS = (HARDWARE_TIMER_0_TOP_VALUE - TimerRemainder) + TimerEndRemainder;
+		//if(ElapsedUS > 1000)
+		//{
+		//	ElapsedUS = ElapsedUS - 1000;
+		//}
+		
+		/*if(TimerEndTime.day != TimerStartTime.day)
+		{
+			TimerEndTime.day = TimerEndTime.day - TimerStartTime.day;
+			TimerEndTime.hour = TimerEndTime.hour + (24 - TimerStartTime.hour);
+			TimerEndTime.min = TimerEndTime.min + (60 - TimerStartTime.min);
+			TimerEndTime.sec = TimerEndTime.sec + (60 - TimerStartTime.sec);
+		}
+		
+		if(
+		
+		
+		
+		
+		
+			if(TimerEndTime.hour = TimerStartTime.hour)
+			{
+				if(TimerEndTime.min = TimerStartTime.min)
+				{
+					if(TimerEndTime.sec = TimerStartTime.sec)
+					{
+					
+					}*/
+		
+		
+		
+		//Reset the timer value
+		TimerRunning = 0;
+	}
+	return;
+}
+
+
+
+
 //Timer interrupt 0 for basic timing stuff
 ISR(TIMER0_COMPA_vect)
 {
@@ -201,24 +294,6 @@ ISR(TIMER0_COMPA_vect)
 			}
 		}
 	}
-	
-	
-	
-	/*ElapsedMS		= 0x0000;
-	TheTime.sec		= 0;
-	TheTime.min		= 0;
-	TheTime.hour	= 0;
-	TheTime.dow		= 0;
-	TheTime.day		= 0;
-	TheTime.month	= 0;
-	TheTime.year	= 0;*/
-	
-	
-	//Count up to 60000ms (1 min) then reset to zero.
-	//if(ElapsedMS >= 60000)
-	//{
-	//	ElapsedMS = 0;
-	//}
 }
 
 /** @} */
