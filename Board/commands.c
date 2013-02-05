@@ -68,11 +68,11 @@ const char _F6_NAME[] PROGMEM 			= "regwrite";
 const char _F6_DESCRIPTION[] PROGMEM 	= "write to a register";
 const char _F6_HELPTEXT[] PROGMEM 		= "regwrite <register> <data>";
 
-//Test the buzzer
+//Get a set of data from the devices
 static int _F8_Handler (void);
-const char _F8_NAME[] PROGMEM 			= "beep";
-const char _F8_DESCRIPTION[] PROGMEM 	= "Test the buzzer";
-const char _F8_HELPTEXT[] PROGMEM 		= "beep <time>";
+const char _F8_NAME[] PROGMEM 			= "adc";
+const char _F8_DESCRIPTION[] PROGMEM 	= "Get a data set";
+const char _F8_HELPTEXT[] PROGMEM 		= "'adc' has no parameters";
 
 //Turn the relay on or off
 static int _F9_Handler (void);
@@ -107,7 +107,7 @@ const CommandListItem AppCommandList[] PROGMEM =
 	{ _F4_NAME, 	4,  4,	_F4_Handler,	_F4_DESCRIPTION,	_F4_HELPTEXT	},		//settime
 	{ _F5_NAME, 	0,  0,	_F5_Handler,	_F5_DESCRIPTION,	_F5_HELPTEXT	},		//gettime
 	{ _F6_NAME, 	2,  2,	_F6_Handler,	_F6_DESCRIPTION,	_F6_HELPTEXT	},		//writereg	
-	{ _F8_NAME,		1,  1,	_F8_Handler,	_F8_DESCRIPTION,	_F8_HELPTEXT	},		//beep
+	{ _F8_NAME,		0,  0,	_F8_Handler,	_F8_DESCRIPTION,	_F8_HELPTEXT	},		//adc
 	{ _F9_NAME,		1,  1,	_F9_Handler,	_F9_DESCRIPTION,	_F9_HELPTEXT	},		//relay
 	{ _F10_NAME,	0,  0,	_F10_Handler,	_F10_DESCRIPTION,	_F10_HELPTEXT	},		//cal
 	{ _F11_NAME,	0,  0,	_F11_Handler,	_F11_DESCRIPTION,	_F11_HELPTEXT	},		//temp
@@ -205,12 +205,13 @@ static int _F6_Handler (void)
 	return 0;
 }
 
-//Test the buzzer
+//Get a set of data from the devices
 static int _F8_Handler (void)
 {
-	uint16_t TimeToBeep = argAsInt(1);
 
-	//Beep(TimeToBeep);
+	tcs3414_GetData();
+
+
 
 	return 0;
 }

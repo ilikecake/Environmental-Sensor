@@ -73,6 +73,6 @@ uint8_t tcs3414_IsReg(uint8_t Reg);
 
 void tcs3414_Init( void );
 
-
+uint8_t tcs3414_GetData( void );
 
 #endif
