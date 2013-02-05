@@ -84,12 +84,7 @@ uint8_t tcs3414_GetData(uint16_t *RedData, uint16_t *GreenData, uint16_t *BlueDa
 {
 	uint8_t i;
 	uint8_t DataToSend;
-	uint8_t DataToReceive[8];
-	
-	//uint16_t Red = 0;
-	//uint16_t Green = 0;
-	//uint16_t Blue = 0;
-	//uint16_t Clear = 0;
+	uint8_t DataToReceive[9];
 	
 	tcs3414_ReadReg(TCS3414_REG_CONTROL, DataToReceive);
 	
@@ -99,18 +94,14 @@ uint8_t tcs3414_GetData(uint16_t *RedData, uint16_t *GreenData, uint16_t *BlueDa
 		return 0xFF;
 	}
 	
+	//Note: the first byte received is the number of data bytes (8).
 	DataToSend = 0xCF;
-	if(I2CSoft_RW(TCS3414_I2C_ADDR, &DataToSend, DataToReceive, 1, 8) == 0)
+	if(I2CSoft_RW(TCS3414_I2C_ADDR, &DataToSend, DataToReceive, 1, 9) == 0)
 	{
-		*RedData = (DataToReceive[2] | (DataToReceive[3] << 8));
-		*GreenData = (DataToReceive[0] | (DataToReceive[1] << 8));
-		*BlueData = (DataToReceive[4] | (DataToReceive[5] << 8));
-		*ClearData = (DataToReceive[6] | (DataToReceive[7] << 8));
-		
-		//printf("red:	0x%04X\n", Red);
-		//printf("green:	0x%04X\n", Green);
-		//printf("blue:	0x%04X\n", Blue);
-		//printf("clear:	0x%04X\n", Clear);
+		*RedData = (DataToReceive[3] | (DataToReceive[4] << 8));
+		*GreenData = (DataToReceive[1] | (DataToReceive[2] << 8));
+		*BlueData = (DataToReceive[5] | (DataToReceive[6] << 8));
+		*ClearData = (DataToReceive[7] | (DataToReceive[8] << 8));
 		
 		return 0x00;
 	}
