@@ -30,7 +30,7 @@
 
 /** \file
  *
- *  Header file for VirtualSerial.c.
+ *  Header file for main.c.
  */
 
 #ifndef _ENV_SENSOR_H_

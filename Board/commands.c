@@ -210,14 +210,17 @@ static int _F8_Handler (void)
 {
 	uint16_t LS_Data[4];
 
-	StartTimer();
-	tcs3414_GetData(&LS_Data[0], &LS_Data[1], &LS_Data[2], &LS_Data[3]);
-	StopTimer();
+	//StartTimer();
+	if(tcs3414_GetData(&LS_Data[0], &LS_Data[1], &LS_Data[2], &LS_Data[3]) == 0)
+	{
+		printf_P(PSTR("red:	0x%04X\n"), LS_Data[0]);
+		printf_P(PSTR("green:	0x%04X\n"), LS_Data[1]);
+		printf_P(PSTR("blue:	0x%04X\n"), LS_Data[2]);
+		printf_P(PSTR("clear:	0x%04X\n"), LS_Data[3]);
+	}
+	//StopTimer();
 
-	printf("red:	0x%04X\n", LS_Data[0]);
-	printf("green:	0x%04X\n", LS_Data[1]);
-	printf("blue:	0x%04X\n", LS_Data[2]);
-	printf("clear:	0x%04X\n", LS_Data[3]);
+	
 
 
 	return 0;

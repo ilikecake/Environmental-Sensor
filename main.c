@@ -30,7 +30,7 @@
 
 /** \file
  *
- *  Main source file for the Beer Heater. This file contains the main loop
+ *  Main source file for the environmental sensor. This file contains the main loop
  *  and is responsible for the initial application hardware configuration.
  */
 
@@ -76,8 +76,6 @@ static FILE USBSerialStream;
  */
 int main(void)
 {
-	//uint8_t OldButtonState;
-	//uint8_t NewButtonState;
 	HardwareInit();
 
 	/* Create a regular character stream for the interface so that it can be used with the stdio.h functions */
@@ -85,60 +83,13 @@ int main(void)
 	stdout = &USBSerialStream;
 
 	LEDs_SetAllLEDs(LEDMASK_USB_NOTREADY);
-	sei();
+	//sei();
 
-	//OldButtonState = GetButtonState();
 	for (;;)
 	{
 		RunCommand();
-		
-		//Check button state
-		/*NewButtonState = GetButtonState();
-		if(NewButtonState != OldButtonState)
-		{
-			if((NewButtonState & 0x01) != (OldButtonState & 0x01))
-			{
-				if((NewButtonState & 0x01) == 0x01)
-				{
-					printf_P(PSTR("B1 Pushed\n"));
-				}
-				else
-				{
-					printf_P(PSTR("B1 Released\n"));
-				}
-			}
-			else
-			{
-				if((NewButtonState & 0x02) == 0x02)
-				{
-					printf_P(PSTR("B2 Pushed\n"));
-				}
-				else
-				{
-					printf_P(PSTR("B2 Released\n"));
-				}
-			}
-			OldButtonState = NewButtonState;
-		}*/
 	}
 }
-
-/** Configures the board hardware and chip peripherals for the demo's functionality. */
-void SetupHardware(void)
-{
-	/* Disable watchdog if enabled by bootloader/fuses */
-	MCUSR &= ~(1 << WDRF);
-	wdt_disable();
-
-	/* Disable clock division */
-	clock_prescale_set(clock_div_1);
-
-	/* Hardware Initialization */
-	LEDs_Init();
-	USB_Init();
-}
-
-
 
 /** Event handler for the library USB Connection event. */
 void EVENT_USB_Device_Connect(void)
