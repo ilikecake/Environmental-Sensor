@@ -78,13 +78,13 @@ const char _F8_HELPTEXT[] PROGMEM 		= "'data' has no parameters";
 static int _F9_Handler (void);
 const char _F9_NAME[] PROGMEM 			= "memread";
 const char _F9_DESCRIPTION[] PROGMEM 	= "Read data from memory";
-const char _F9_HELPTEXT[] PROGMEM 		= "'memread' <register>";
+const char _F9_HELPTEXT[] PROGMEM 		= "memread <register>";
 
-//Manual calibration of the ADC
+//Pressure sensor functions
 static int _F10_Handler (void);
-const char _F10_NAME[] PROGMEM 			= "cal";
-const char _F10_DESCRIPTION[] PROGMEM 	= "Calibrate the ADC";
-const char _F10_HELPTEXT[] PROGMEM 		= "'cal' has no parameters";
+const char _F10_NAME[] PROGMEM 			= "pres";
+const char _F10_DESCRIPTION[] PROGMEM 	= "Pressure sensor functions";
+const char _F10_HELPTEXT[] PROGMEM 		= "pres <function>";
 
 //Get temperatures from the ADC
 static int _F11_Handler (void);
@@ -109,7 +109,7 @@ const CommandListItem AppCommandList[] PROGMEM =
 	{ _F6_NAME, 	2,  2,	_F6_Handler,	_F6_DESCRIPTION,	_F6_HELPTEXT	},		//writereg	
 	{ _F8_NAME,		0,  0,	_F8_Handler,	_F8_DESCRIPTION,	_F8_HELPTEXT	},		//data
 	{ _F9_NAME,		1,  1,	_F9_Handler,	_F9_DESCRIPTION,	_F9_HELPTEXT	},		//memread
-	{ _F10_NAME,	0,  0,	_F10_Handler,	_F10_DESCRIPTION,	_F10_HELPTEXT	},		//cal
+	{ _F10_NAME,	1,  1,	_F10_Handler,	_F10_DESCRIPTION,	_F10_HELPTEXT	},		//pres
 	{ _F11_NAME,	0,  0,	_F11_Handler,	_F11_DESCRIPTION,	_F11_HELPTEXT	},		//temp
 	{ _F12_NAME,	0,  0,	_F12_Handler,	_F12_DESCRIPTION,	_F12_HELPTEXT	},		//twiscan
 };
@@ -256,103 +256,50 @@ static int _F9_Handler (void)
 	return 0;
 }
 
-//Manual calibration of the ADC
+//Pressure sensor functions
 static int _F10_Handler (void)
 {
-	uint8_t SendData[3];
-	/*
-	//Calibrate channel 1
-	SendData[1] = (AD7794_CRH_BIPOLAR|AD7794_CRH_GAIN_1);
-	SendData[0] = (AD7794_CRL_REF_INT|AD7794_CRL_REF_DETECT|AD7794_CRL_BUFFER_ON|AD7794_CRL_CHANNEL_AIN1);
-	AD7794WriteReg(AD7794_CR_REG_CONFIG, SendData);
+	uint8_t RegToRead = argAsInt(1);
+	switch(RegToRead)
+	{
+		case 0:
+			MPL115A1_Deselect();
+			break;
+			
+		case 1:
+			MPL115A1_Select();
+			break;
+			
+		case 2:
+			MPL115A1_Select();
+			
+			SPI_SendByte(0x80 | (MPL115AL_REG_CAL_A0_MSB<<1));
+			printf("A0: 0x%02X", SPI_ReceiveByte());
+			SPI_SendByte(0x80 | (MPL115AL_REG_CAL_A0_LSB<<1));
+			printf("%02X\n", SPI_ReceiveByte());
+			
+			SPI_SendByte(0x80 | (MPL115AL_REG_CAL_B1_MSB<<1));
+			printf("B1: 0x%02X", SPI_ReceiveByte());
+			SPI_SendByte(0x80 | (MPL115AL_REG_CAL_B1_LSB<<1));
+			printf("%02X\n", SPI_ReceiveByte());
+			
+			SPI_SendByte(0x80 | (MPL115AL_REG_CAL_B2_MSB<<1));
+			printf("B2: 0x%02X", SPI_ReceiveByte());
+			SPI_SendByte(0x80 | (MPL115AL_REG_CAL_B2_LSB<<1));
+			printf("%02X\n", SPI_ReceiveByte());
+			
+			SPI_SendByte(0x80 | (MPL115AL_REG_CAL_C12_MSB<<1));
+			printf("C12: 0x%02X", SPI_ReceiveByte());
+			SPI_SendByte(0x80 | (MPL115AL_REG_CAL_C12_LSB<<1));
+			printf("%02X\n", SPI_ReceiveByte());
+			
+			MPL115A1_Deselect();
+			break;
 	
-	//Calibrate zero
-	printf_P(PSTR("Calibrating channel 1 zero...."));
-	SendData[1] = AD7794_MRH_MODE_IZ_CAL & AD7794_CR_REG_MODE_MASK_H;
-	SendData[0] = (AD7794_MRL_CLK_INT_NOOUT | AD7794_MRL_UPDATE_RATE_10_HZ) & AD7794_CR_REG_MODE_MASK_L;
-	AD7794WriteReg(AD7794_CR_REG_MODE, SendData);
-
-	AD7794WaitReady();
-	printf_P(PSTR("Done!\n"));
 	
-	//Calibrate full scale
-	printf_P(PSTR("Calibrating channel 1 FS...."));
-	SendData[1] = AD7794_MRH_MODE_IFS_CAL & AD7794_CR_REG_MODE_MASK_H;
-	SendData[0] = (AD7794_MRL_CLK_INT_NOOUT | AD7794_MRL_UPDATE_RATE_10_HZ) & AD7794_CR_REG_MODE_MASK_L;
-	AD7794WriteReg(AD7794_CR_REG_MODE, SendData);
-
-	AD7794WaitReady();
-	printf_P(PSTR("Done!\n"));
+	}
 	
-	//Calibrate channel 2
-	SendData[1] = (AD7794_CRH_BIPOLAR|AD7794_CRH_GAIN_1);
-	SendData[0] = (AD7794_CRL_REF_INT|AD7794_CRL_REF_DETECT|AD7794_CRL_BUFFER_ON|AD7794_CRL_CHANNEL_AIN2);
-	AD7794WriteReg(AD7794_CR_REG_CONFIG, SendData);
 	
-	//Calibrate zero
-	printf_P(PSTR("Calibrating channel 2 zero...."));
-	SendData[1] = AD7794_MRH_MODE_IZ_CAL & AD7794_CR_REG_MODE_MASK_H;
-	SendData[0] = (AD7794_MRL_CLK_INT_NOOUT | AD7794_MRL_UPDATE_RATE_10_HZ) & AD7794_CR_REG_MODE_MASK_L;
-	AD7794WriteReg(AD7794_CR_REG_MODE, SendData);
-
-	AD7794WaitReady();
-	printf_P(PSTR("Done!\n"));
-	
-	//Calibrate full scale
-	printf_P(PSTR("Calibrating channel 2 FS...."));
-	SendData[1] = AD7794_MRH_MODE_IFS_CAL & AD7794_CR_REG_MODE_MASK_H;
-	SendData[0] = (AD7794_MRL_CLK_INT_NOOUT | AD7794_MRL_UPDATE_RATE_10_HZ) & AD7794_CR_REG_MODE_MASK_L;
-	AD7794WriteReg(AD7794_CR_REG_MODE, SendData);
-
-	AD7794WaitReady();
-	printf_P(PSTR("Done!\n"));
-	
-	//Calibrate channel 3
-	SendData[1] = (AD7794_CRH_BIPOLAR|AD7794_CRH_GAIN_1);
-	SendData[0] = (AD7794_CRL_REF_INT|AD7794_CRL_REF_DETECT|AD7794_CRL_BUFFER_ON|AD7794_CRL_CHANNEL_AIN3);
-	AD7794WriteReg(AD7794_CR_REG_CONFIG, SendData);
-	
-	//Calibrate zero
-	printf_P(PSTR("Calibrating channel 3 zero...."));
-	SendData[1] = AD7794_MRH_MODE_IZ_CAL & AD7794_CR_REG_MODE_MASK_H;
-	SendData[0] = (AD7794_MRL_CLK_INT_NOOUT | AD7794_MRL_UPDATE_RATE_10_HZ) & AD7794_CR_REG_MODE_MASK_L;
-	AD7794WriteReg(AD7794_CR_REG_MODE, SendData);
-
-	AD7794WaitReady();
-	printf_P(PSTR("Done!\n"));
-	
-	//Calibrate full scale
-	printf_P(PSTR("Calibrating channel 3 FS...."));
-	SendData[1] = AD7794_MRH_MODE_IFS_CAL & AD7794_CR_REG_MODE_MASK_H;
-	SendData[0] = (AD7794_MRL_CLK_INT_NOOUT | AD7794_MRL_UPDATE_RATE_10_HZ) & AD7794_CR_REG_MODE_MASK_L;
-	AD7794WriteReg(AD7794_CR_REG_MODE, SendData);
-
-	AD7794WaitReady();
-	printf_P(PSTR("Done!\n"));
-	
-	//Calibrate channel 6
-	SendData[1] = (AD7794_CRH_BIPOLAR|AD7794_CRH_GAIN_1);
-	SendData[0] = (AD7794_CRL_REF_INT|AD7794_CRL_REF_DETECT|AD7794_CRL_BUFFER_ON|AD7794_CRL_CHANNEL_AIN6);
-	AD7794WriteReg(AD7794_CR_REG_CONFIG, SendData);
-	
-	//Calibrate zero
-	printf_P(PSTR("Calibrating channel 6 zero...."));
-	SendData[1] = AD7794_MRH_MODE_IZ_CAL & AD7794_CR_REG_MODE_MASK_H;
-	SendData[0] = (AD7794_MRL_CLK_INT_NOOUT | AD7794_MRL_UPDATE_RATE_10_HZ) & AD7794_CR_REG_MODE_MASK_L;
-	AD7794WriteReg(AD7794_CR_REG_MODE, SendData);
-
-	AD7794WaitReady();
-	printf_P(PSTR("Done!\n"));
-	
-	//Calibrate full scale
-	printf_P(PSTR("Calibrating channel 6 FS...."));
-	SendData[1] = AD7794_MRH_MODE_IFS_CAL & AD7794_CR_REG_MODE_MASK_H;
-	SendData[0] = (AD7794_MRL_CLK_INT_NOOUT | AD7794_MRL_UPDATE_RATE_10_HZ) & AD7794_CR_REG_MODE_MASK_L;
-	AD7794WriteReg(AD7794_CR_REG_MODE, SendData);
-
-	AD7794WaitReady();
-	printf_P(PSTR("Done!\n"));*/
-
 	return 0;
 }
 
