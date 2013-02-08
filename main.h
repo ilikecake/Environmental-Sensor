@@ -61,6 +61,7 @@
 		//Board includes
 		#include "Board/Hardware.h"
 		#include "Board/tcs3414.h"
+		#include "Board/sht25.h"
 		
 	/* Macros: */
 		/** LED mask for the library LED driver, to indicate that the USB interface is not ready. */
