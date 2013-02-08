@@ -65,7 +65,7 @@ void HardwareInit( void )
 	clock_prescale_set(clock_div_1);
 
 	//Hardware Initialization
-	//SPI_Init(SPI_SPEED_FCPU_DIV_2 | SPI_ORDER_MSB_FIRST | SPI_SCK_LEAD_FALLING | SPI_SAMPLE_TRAILING | SPI_MODE_MASTER);
+	SPI_Init(SPI_SPEED_FCPU_DIV_2 | SPI_ORDER_MSB_FIRST | SPI_SCK_LEAD_FALLING | SPI_SAMPLE_TRAILING | SPI_MODE_MASTER);
 
 	//Setup timer 0 for 1ms interrupts
 	//CTC Mode
@@ -79,24 +79,27 @@ void HardwareInit( void )
 	//Enable interrupts globally
 	sei();
 	
-	
 	//Setup GPIO Pins
 	
 	//PORT B:
-	//	0: Dataflash CS line	(Out, high)
-	//	6: RTC alarm line		(Input, pullup)
-	//DDRB = 0x00;
-	//PORTB = 0x00;
+	//	0: Dataflash CS line			(Out, high)
+	//	4: Pressure sensor CS line		(Out, high)
+	//	6: Pressure sensor sleep line	(Out, low)
+	DDRB	= 1 | (1<<4) | (1<<6);
+	PORTB	= 1 | (1<<4);
 	
 	//PORT C:
-	//	6: RTC CS line			(Out, high)
-	//DDRC = 0x00;
-	//PORTC = 0x00;
+	//	4: Config line 1			(Input, pullup)
+	//	5: Config line 2			(Input, pullup)
+	//	7: Light sensor interrupt 	(Input, pullup)
+	DDRC	= 0x00;
+	PORTC	= (1<<4) | (1<<5) | (1<<7);
 	
 	//PORT D:
 	//	2:	LED				(Out, low)
-	DDRD = (1<<2);
-	PORTD = 0x00;
+	//	7:	HwB Button		(Input, high-Z)
+	DDRD	= (1<<2);
+	PORTD	= 0x00;
 	
 	//Enable USB and interrupts
 	I2CSoft_Init();

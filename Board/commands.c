@@ -70,15 +70,15 @@ const char _F6_HELPTEXT[] PROGMEM 		= "regwrite <register> <data>";
 
 //Get a set of data from the devices
 static int _F8_Handler (void);
-const char _F8_NAME[] PROGMEM 			= "adc";
+const char _F8_NAME[] PROGMEM 			= "data";
 const char _F8_DESCRIPTION[] PROGMEM 	= "Get a data set";
-const char _F8_HELPTEXT[] PROGMEM 		= "'adc' has no parameters";
+const char _F8_HELPTEXT[] PROGMEM 		= "'data' has no parameters";
 
-//Turn the relay on or off
+//Read a register from the memory
 static int _F9_Handler (void);
-const char _F9_NAME[] PROGMEM 			= "relay";
-const char _F9_DESCRIPTION[] PROGMEM 	= "Control the relay";
-const char _F9_HELPTEXT[] PROGMEM 		= "relay <state>";
+const char _F9_NAME[] PROGMEM 			= "memread";
+const char _F9_DESCRIPTION[] PROGMEM 	= "Read data from memory";
+const char _F9_HELPTEXT[] PROGMEM 		= "'memread' <register>";
 
 //Manual calibration of the ADC
 static int _F10_Handler (void);
@@ -107,8 +107,8 @@ const CommandListItem AppCommandList[] PROGMEM =
 	{ _F4_NAME, 	4,  4,	_F4_Handler,	_F4_DESCRIPTION,	_F4_HELPTEXT	},		//settime
 	{ _F5_NAME, 	0,  0,	_F5_Handler,	_F5_DESCRIPTION,	_F5_HELPTEXT	},		//gettime
 	{ _F6_NAME, 	2,  2,	_F6_Handler,	_F6_DESCRIPTION,	_F6_HELPTEXT	},		//writereg	
-	{ _F8_NAME,		0,  0,	_F8_Handler,	_F8_DESCRIPTION,	_F8_HELPTEXT	},		//adc
-	{ _F9_NAME,		1,  1,	_F9_Handler,	_F9_DESCRIPTION,	_F9_HELPTEXT	},		//relay
+	{ _F8_NAME,		0,  0,	_F8_Handler,	_F8_DESCRIPTION,	_F8_HELPTEXT	},		//data
+	{ _F9_NAME,		1,  1,	_F9_Handler,	_F9_DESCRIPTION,	_F9_HELPTEXT	},		//memread
 	{ _F10_NAME,	0,  0,	_F10_Handler,	_F10_DESCRIPTION,	_F10_HELPTEXT	},		//cal
 	{ _F11_NAME,	0,  0,	_F11_Handler,	_F11_DESCRIPTION,	_F11_HELPTEXT	},		//temp
 	{ _F12_NAME,	0,  0,	_F12_Handler,	_F12_DESCRIPTION,	_F12_HELPTEXT	},		//twiscan
@@ -220,17 +220,39 @@ static int _F8_Handler (void)
 	}
 	//StopTimer();
 
-	
-
-
 	return 0;
 }
 
-//Turn the relay on or off
+//Read a register from the memory
 static int _F9_Handler (void)
 {
-	uint8_t RelayState = argAsInt(1);
-	//Relay(RelayState);
+	uint8_t RegToRead = argAsInt(1);
+	if(RegToRead == 1)
+	{
+		AT45DB321D_Select();
+	}
+	else if(RegToRead == 0)
+	{
+		AT45DB321D_Deselect();
+	}
+	else if(RegToRead == 2)	//Read status
+	{
+		AT45DB321D_Select();
+		SPI_SendByte(AT45DB321D_CMD_READ_STATUS);
+		printf("Stat: 0x%02X\n", SPI_ReceiveByte());
+		AT45DB321D_Deselect();
+	}
+	else if(RegToRead == 3)	//Read IDs
+	{
+		AT45DB321D_Select();
+		SPI_SendByte(AT45DB321D_CMD_READ_DEVICE_ID);
+		printf("ID[1]: 0x%02X\n", SPI_ReceiveByte());
+		printf("ID[2]: 0x%02X\n", SPI_ReceiveByte());
+		printf("ID[3]: 0x%02X\n", SPI_ReceiveByte());
+		printf("ID[4]: 0x%02X\n", SPI_ReceiveByte());
+		AT45DB321D_Deselect();
+	}
+
 	return 0;
 }
 
