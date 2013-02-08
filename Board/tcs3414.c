@@ -107,3 +107,5 @@ uint8_t tcs3414_GetData(uint16_t *RedData, uint16_t *GreenData, uint16_t *BlueDa
 	}
 	return 0xFF;
 }
+
+/** @} */
