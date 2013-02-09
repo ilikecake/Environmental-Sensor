@@ -263,10 +263,10 @@ static int _F9_Handler (void)
 //Pressure sensor functions
 static int _F10_Handler (void)
 {
-	uint8_t A0[2];
-	uint8_t B1[2];
-	uint8_t B2[2];
-	uint8_t C12[2];
+	uint16_t A0;
+	uint16_t B1;
+	uint16_t B2;
+	uint16_t C12;
 	uint16_t pres;
 	uint16_t temp;
 	uint8_t RegToRead = argAsInt(1);
@@ -281,12 +281,12 @@ static int _F10_Handler (void)
 			break;
 			
 		case 2:
-			MPL115A1_GetCalData(A0, B1, B2, C12);
+			MPL115A1_GetCalData(&A0, &B1, &B2, &C12);
 		
-			printf("A0: 0x%02X%02X\n", A0[1], A0[0]);
-			printf("B1: 0x%02X%02X\n", B1[1], B1[0]);
-			printf("B2: 0x%02X%02X\n", B2[1], B2[0]);
-			printf("C12: 0x%02X%02X\n", C12[1], C12[0]);
+			printf("A0: 0x%04X\n", A0);
+			printf("B1: 0x%04X\n", B1);
+			printf("B2: 0x%04X\n", B2);
+			printf("C12: 0x%04X\n", C12);
 		
 			/*SPI_Init(SPI_SPEED_FCPU_DIV_2 | SPI_ORDER_MSB_FIRST | SPI_SCK_LEAD_RISING | SPI_SAMPLE_LEADING | SPI_MODE_MASTER);
 		
@@ -320,6 +320,10 @@ static int _F10_Handler (void)
 			printf("pres: 0x%04X\n", pres);
 			printf("temp: 0x%04X\n", temp);
 			
+			break;
+	
+		case 4:
+			MPL115A1_GetPressure(&pres);
 			break;
 	
 	}
