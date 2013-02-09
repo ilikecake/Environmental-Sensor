@@ -71,6 +71,8 @@
 #define AT45DB321D_CMD_CHIP_ERASE3				0x80
 #define AT45DB321D_CMD_CHIP_ERASE4				0x9A
 
+void AT45DB321D_Init(void);
+
 void AT45DB321D_Select(void);
 void AT45DB321D_Deselect(void);
 
@@ -91,4 +93,5 @@ void AT45DB321D_Powerup(void);
 
 void AT45DB321D_SwitchTo512(void);	//This only needs to happen once, it cannot be undone.
 
+#endif
 /** @} */

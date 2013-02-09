@@ -58,12 +58,12 @@ uint8_t SHT25_ReadUserReg(uint8_t *RegValue);
 uint8_t SHT25_WriteUserReg(uint8_t RegValue);
 
 //Use the no hold method, and poll the device to see when it is done.
-uint8_t SHT25_ReadTemp(uint18_t TempValue);
+uint8_t SHT25_ReadTemp(uint16_t TempValue);
 
 //Use the no hold method, and poll the device to see when it is done.
 //Return relative humidity in %
 uint8_t SHT25_ReadRH(uint16_t RHValue);
 
 
-
+#endif
 /** @} */

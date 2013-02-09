@@ -107,6 +107,8 @@ void HardwareInit( void )
 	
 	//Initalize peripherals
 	tcs3414_Init();
+	MPL115A1_Init();
+	AT45DB321D_Init();
 	
 	return;
 }

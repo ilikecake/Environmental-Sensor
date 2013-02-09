@@ -25,15 +25,21 @@
 
 #include "main.h"
 
+void AT45DB321D_Init(void)
+{
+	AT45DB321D_Deselect();
+	return;
+}
+
 void AT45DB321D_Select(void)
 {
-	PORTB &= ~(1);
+	PORTB &= ~(1<<0);
 	return;
 }
 
 void AT45DB321D_Deselect(void)
 {
-	PORTB |= 1;
+	PORTB |= (1<<0);
 	return;
 }
 

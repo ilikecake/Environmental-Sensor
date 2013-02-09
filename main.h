@@ -62,6 +62,8 @@
 		#include "Board/Hardware.h"
 		#include "Board/tcs3414.h"
 		#include "Board/sht25.h"
+		#include "Board/at45db321d.h"
+		#include "Board/mpl115a1.h"
 		
 	/* Macros: */
 		/** LED mask for the library LED driver, to indicate that the USB interface is not ready. */
