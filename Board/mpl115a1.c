@@ -121,8 +121,31 @@ void MPL115A1_GetConversion(uint16_t *PressureData, uint16_t *TemperatureData)
 	*TemperatureData |= (SPI_ReceiveByte());
 	
 	MPL115A1_Deselect();
+	
+	//Values are 10 bit number, left aligned.
+	PressureData = PressureData >> 6;
+	TemperatureData = TemperatureData >> 6;
+	
 	return;
 }
 
+void MPL115A1_GetPressure(uint16_t *Pressure_kPa)
+{
+	uint8_t A0[2];
+	uint8_t B1[2];
+	uint8_t B2[2];
+	uint8_t C12[2];
+	uint16_t pres;
+	uint16_t temp;
+	uint64_t tempval;
+
+	MPL115A1_GetCalData(A0, B1, B2, C12);
+	MPL115A1_GetConversion(&pres, &temp);
+	
+
+
+
+	return;
+}
 
 /** @} */

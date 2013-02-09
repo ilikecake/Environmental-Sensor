@@ -263,7 +263,6 @@ static int _F9_Handler (void)
 //Pressure sensor functions
 static int _F10_Handler (void)
 {
-	float32_t blarg;
 	uint8_t A0[2];
 	uint8_t B1[2];
 	uint8_t B2[2];

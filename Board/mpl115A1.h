@@ -50,6 +50,7 @@ void MPL115A1_Sleep(uint8_t ToSleep);
 
 void MPL115A1_GetCalData(uint8_t A0[], uint8_t B1[], uint8_t B2[], uint8_t C12[]);
 void MPL115A1_GetConversion(uint16_t *PressureData, uint16_t *TemperatureData);
+void MPL115A1_GetPressure(uint16_t *Pressure_kPa);
 
 #endif
 /** @} */
