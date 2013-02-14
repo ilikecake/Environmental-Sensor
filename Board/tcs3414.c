@@ -82,7 +82,7 @@ uint8_t tcs3414_IsReg(uint8_t Reg)
 
 uint8_t tcs3414_GetData(uint16_t *RedData, uint16_t *GreenData, uint16_t *BlueData, uint16_t *ClearData)
 {
-	uint8_t i;
+	//uint8_t i;
 	uint8_t DataToSend;
 	uint8_t DataToReceive[9];
 	

@@ -109,7 +109,7 @@ const CommandListItem AppCommandList[] PROGMEM =
 	{ _F6_NAME, 	2,  2,	_F6_Handler,	_F6_DESCRIPTION,	_F6_HELPTEXT	},		//writereg	
 	{ _F8_NAME,		0,  0,	_F8_Handler,	_F8_DESCRIPTION,	_F8_HELPTEXT	},		//data
 	{ _F9_NAME,		1,  1,	_F9_Handler,	_F9_DESCRIPTION,	_F9_HELPTEXT	},		//memread
-	{ _F10_NAME,	1,  1,	_F10_Handler,	_F10_DESCRIPTION,	_F10_HELPTEXT	},		//pres
+	{ _F10_NAME,	0,  0,	_F10_Handler,	_F10_DESCRIPTION,	_F10_HELPTEXT	},		//pres
 	{ _F11_NAME,	0,  0,	_F11_Handler,	_F11_DESCRIPTION,	_F11_HELPTEXT	},		//temp
 	{ _F12_NAME,	0,  0,	_F12_Handler,	_F12_DESCRIPTION,	_F12_HELPTEXT	},		//twiscan
 };
@@ -263,72 +263,9 @@ static int _F9_Handler (void)
 //Pressure sensor functions
 static int _F10_Handler (void)
 {
-	uint16_t A0;
-	uint16_t B1;
-	uint16_t B2;
-	uint16_t C12;
-	uint16_t pres;
-	uint16_t temp;
-	uint8_t RegToRead = argAsInt(1);
-	switch(RegToRead)
-	{
-		case 0:
-			MPL115A1_Deselect();
-			break;
-			
-		case 1:
-			MPL115A1_Select();
-			break;
-			
-		case 2:
-			MPL115A1_GetCalData(&A0, &B1, &B2, &C12);
-		
-			printf("A0: 0x%04X\n", A0);
-			printf("B1: 0x%04X\n", B1);
-			printf("B2: 0x%04X\n", B2);
-			printf("C12: 0x%04X\n", C12);
-		
-			/*SPI_Init(SPI_SPEED_FCPU_DIV_2 | SPI_ORDER_MSB_FIRST | SPI_SCK_LEAD_RISING | SPI_SAMPLE_LEADING | SPI_MODE_MASTER);
-		
-			MPL115A1_Select();
-			
-			SPI_SendByte(0x80 | (MPL115AL_REG_CAL_A0_MSB<<1));
-			printf("A0: 0x%02X", SPI_ReceiveByte());
-			SPI_SendByte(0x80 | (MPL115AL_REG_CAL_A0_LSB<<1));
-			printf("%02X\n", SPI_ReceiveByte());
-			
-			SPI_SendByte(0x80 | (MPL115AL_REG_CAL_B1_MSB<<1));
-			printf("B1: 0x%02X", SPI_ReceiveByte());
-			SPI_SendByte(0x80 | (MPL115AL_REG_CAL_B1_LSB<<1));
-			printf("%02X\n", SPI_ReceiveByte());
-			
-			SPI_SendByte(0x80 | (MPL115AL_REG_CAL_B2_MSB<<1));
-			printf("B2: 0x%02X", SPI_ReceiveByte());
-			SPI_SendByte(0x80 | (MPL115AL_REG_CAL_B2_LSB<<1));
-			printf("%02X\n", SPI_ReceiveByte());
-			
-			SPI_SendByte(0x80 | (MPL115AL_REG_CAL_C12_MSB<<1));
-			printf("C12: 0x%02X", SPI_ReceiveByte());
-			SPI_SendByte(0x80 | (MPL115AL_REG_CAL_C12_LSB<<1));
-			printf("%02X\n", SPI_ReceiveByte());
-			
-			MPL115A1_Deselect();*/
-			break;
-			
-		case 3:
-			MPL115A1_GetConversion(&pres, &temp);
-			printf("pres: 0x%04X\n", pres);
-			printf("temp: 0x%04X\n", temp);
-			
-			break;
-	
-		case 4:
-			MPL115A1_GetPressure(&pres);
-			break;
-	
-	}
-	
-	
+	int16_t Pressure_kPa;
+	MPL115A1_GetPressure(&Pressure_kPa);
+	printf_P(PSTR("Pressure: %u.%u kPa\n"), ((int16_t)Pressure_kPa)>>4, ((((int16_t)Pressure_kPa)&0x000F)*1000)/(16) );
 	return 0;
 }
 

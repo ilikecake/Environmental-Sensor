@@ -47,10 +47,11 @@ void MPL115A1_Init(void);
 void MPL115A1_Select(void);
 void MPL115A1_Deselect(void);
 void MPL115A1_Sleep(uint8_t ToSleep);
+void MPL115A1_UpdateCalData(void);
 
-void MPL115A1_GetCalData(uint16_t *A0, uint16_t *B1, uint16_t *B2, uint16_t *C12);
+void MPL115A1_GetCalData(int16_t *A0, int16_t *B1, int16_t *B2, int16_t *C12);
 void MPL115A1_GetConversion(uint16_t *PressureData, uint16_t *TemperatureData);
-void MPL115A1_GetPressure(uint16_t *Pressure_kPa);
+void MPL115A1_GetPressure(int16_t *Pressure_kPa);
 
 #endif
 /** @} */
