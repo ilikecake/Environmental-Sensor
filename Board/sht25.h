@@ -54,6 +54,7 @@
 #define SHT25_UREG_RESERVED_MASK	0x38	
 
 void SHT25_Init( void );
+uint8_t SHT25_Reset(void);
 uint8_t SHT25_ReadUserReg(uint8_t *RegValue);
 uint8_t SHT25_WriteUserReg(uint8_t RegValue);
 
