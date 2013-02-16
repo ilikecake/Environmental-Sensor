@@ -25,6 +25,47 @@
 
 #include "main.h"
 
+void SHT25_Init( void )
+{
+	return;
+}
+
+uint8_t SHT25_ReadUserReg(uint8_t *RegValue)
+{
+	uint8_t DataToSend = SHT25_READ_USER_REG;
+
+	if(I2CSoft_RW(SHT25_I2C_ADDR, &DataToSend, RegValue, 1, 1) == 0)
+	{	
+		return 0x00;
+	}
+	return 0xFF;
+}
+
+uint8_t SHT25_WriteUserReg(uint8_t RegValue)
+{
+	uint8_t DataToSend[2];
+	uint8_t CurrentUserReg;
+
+	//Get current user reg value
+	if(SHT25_ReadUserReg(&CurrentUserReg) != 0x00)
+	{
+		return 0xFF;
+	}
+
+	//Mask the reserved bits and write back the new values
+	CurrentUserReg &= SHT25_UREG_RESERVED_MASK;
+	RegValue &= ~(SHT25_UREG_RESERVED_MASK);
+
+	DataToSend[0] = SHT25_READ_USER_REG;
+	DataToSend[1] = (RegValue | CurrentUserReg);
+
+	if(I2CSoft_RW(SHT25_I2C_ADDR, DataToSend, NULL, 2, 0) == 0)
+	{	
+		return 0x00;
+	}
+	return 0xFF;
+}
+
 
 
 

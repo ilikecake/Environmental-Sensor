@@ -86,11 +86,11 @@ const char _F10_NAME[] PROGMEM 			= "pres";
 const char _F10_DESCRIPTION[] PROGMEM 	= "Pressure sensor functions";
 const char _F10_HELPTEXT[] PROGMEM 		= "pres <function>";
 
-//Get temperatures from the ADC
+//Humidity sensor functions
 static int _F11_Handler (void);
-const char _F11_NAME[] PROGMEM 			= "temp";
-const char _F11_DESCRIPTION[] PROGMEM 	= "Get temperatures from the ADC";
-const char _F11_HELPTEXT[] PROGMEM 		= "'temp' has no parameters";
+const char _F11_NAME[] PROGMEM 			= "rh";
+const char _F11_DESCRIPTION[] PROGMEM 	= "Humidity sensor functions";
+const char _F11_HELPTEXT[] PROGMEM 		= "rh <cnd> <val>";
 
 //Scan the TWI bus for devices
 static int _F12_Handler (void);
@@ -110,7 +110,7 @@ const CommandListItem AppCommandList[] PROGMEM =
 	{ _F8_NAME,		0,  0,	_F8_Handler,	_F8_DESCRIPTION,	_F8_HELPTEXT	},		//data
 	{ _F9_NAME,		1,  1,	_F9_Handler,	_F9_DESCRIPTION,	_F9_HELPTEXT	},		//memread
 	{ _F10_NAME,	0,  0,	_F10_Handler,	_F10_DESCRIPTION,	_F10_HELPTEXT	},		//pres
-	{ _F11_NAME,	0,  0,	_F11_Handler,	_F11_DESCRIPTION,	_F11_HELPTEXT	},		//temp
+	{ _F11_NAME,	1,  2,	_F11_Handler,	_F11_DESCRIPTION,	_F11_HELPTEXT	},		//rh
 	{ _F12_NAME,	0,  0,	_F12_Handler,	_F12_DESCRIPTION,	_F12_HELPTEXT	},		//twiscan
 };
 
@@ -269,89 +269,25 @@ static int _F10_Handler (void)
 	return 0;
 }
 
-//Get temperatures from the ADC
+//Humidity sensor functions
 static int _F11_Handler (void)
 {
-	uint8_t SendData[3];
+	uint8_t temp;
+	uint8_t InputCmd	= argAsInt(1);
+	uint8_t InputVal	= argAsInt(2);
 	
-	/*printf_P(PSTR("Taking measurements...\n"));
-	
-	//Turn on excitation current to red thermistor
-	SendData[0] = (AD7794_IO_DIR_IOUT1 | AD7794_IO_10UA);
-	AD7794WriteReg(AD7794_CR_REG_IO, SendData);
+	if(InputCmd == 1)
+	{
+		SHT25_ReadUserReg(&temp);
+		printf_P(PSTR("REG: 0x%02X\n"), temp);
+		return 0;
+	}
+	else if(InputCmd == 2)
+	{
+		SHT25_WriteUserReg(InputVal);
+		return 0;
+	}
 
-	//Set up channel 2 (red thermistor)
-	//	-Unipolar
-	//	-Gain of 2
-	//	-Internal 1.17V reference
-	//	-Buffered
-	SendData[1] = (AD7794_CRH_UNIPOLAR|AD7794_CRH_GAIN_2);
-	SendData[0] = (AD7794_CRL_REF_INT|AD7794_CRL_REF_DETECT|AD7794_CRL_BUFFER_ON|AD7794_CRL_CHANNEL_AIN2);
-	AD7794WriteReg(AD7794_CR_REG_CONFIG, SendData);
-	SendData[1] = AD7794_MRH_MODE_SINGLE;
-	SendData[0] = (AD7794_MRL_CLK_INT_NOOUT | AD7794_MRL_UPDATE_RATE_10_HZ);
-	AD7794WriteReg(AD7794_CR_REG_MODE, SendData);
-	AD7794WaitReady();
-	printf_P(PSTR("Red: %lu counts\n"), AD7794GetData() );
-	
-	//Turn on excitation current to black thermistor
-	SendData[0] = (AD7794_IO_DIR_IOUT2 | AD7794_IO_10UA);
-	AD7794WriteReg(AD7794_CR_REG_IO, SendData);
-	
-	//Set up channel 3 (black thermistor)
-	//	-Unipolar
-	//	-Gain of 2
-	//	-Internal 1.17V reference
-	//	-Buffered
-	SendData[1] = (AD7794_CRH_UNIPOLAR|AD7794_CRH_GAIN_2);
-	SendData[0] = (AD7794_CRL_REF_INT|AD7794_CRL_REF_DETECT|AD7794_CRL_BUFFER_ON|AD7794_CRL_CHANNEL_AIN3);
-	AD7794WriteReg(AD7794_CR_REG_CONFIG, SendData);
-	SendData[1] = AD7794_MRH_MODE_SINGLE;
-	SendData[0] = (AD7794_MRL_CLK_INT_NOOUT | AD7794_MRL_UPDATE_RATE_10_HZ);
-	AD7794WriteReg(AD7794_CR_REG_MODE, SendData);
-	AD7794WaitReady();
-	printf_P(PSTR("Black: %lu counts\n"), AD7794GetData() );
-
-	//Turn off excitation currents
-	SendData[0] = (AD7794_IO_DIR_NORMAL | AD7794_IO_OFF);
-	AD7794WriteReg(AD7794_CR_REG_IO, SendData);
-	
-	//Measure input voltage
-	SendData[1] = (AD7794_CRH_BIPOLAR|AD7794_CRH_GAIN_1);
-	SendData[0] = (AD7794_CRL_REF_INT|AD7794_CRL_REF_DETECT|AD7794_CRL_BUFFER_ON|AD7794_CRL_CHANNEL_AIN6);
-	AD7794WriteReg(AD7794_CR_REG_CONFIG, SendData);
-	SendData[1] = AD7794_MRH_MODE_SINGLE;
-	SendData[0] = (AD7794_MRL_CLK_INT_NOOUT | AD7794_MRL_UPDATE_RATE_10_HZ);
-	AD7794WriteReg(AD7794_CR_REG_MODE, SendData);
-	AD7794WaitReady();
-	printf_P(PSTR("Heater Voltage: %lu counts\n"), AD7794GetData() );
-	
-	//Measure internal temperature
-	SendData[1] = (AD7794_CRH_BIPOLAR|AD7794_CRH_GAIN_1);
-	SendData[0] = (AD7794_CRL_REF_INT|AD7794_CRL_REF_DETECT|AD7794_CRL_BUFFER_ON|AD7794_CRL_CHANNEL_TEMP);
-	AD7794WriteReg(AD7794_CR_REG_CONFIG, SendData);
-	SendData[1] = AD7794_MRH_MODE_SINGLE;
-	SendData[0] = (AD7794_MRL_CLK_INT_NOOUT | AD7794_MRL_UPDATE_RATE_10_HZ);
-	AD7794WriteReg(AD7794_CR_REG_MODE, SendData);
-	AD7794WaitReady();
-	printf_P(PSTR("Internal Temperature: %lu counts\n"), AD7794GetData() );
-	
-	//Measure heater current
-	SendData[1] = (AD7794_CRH_BIPOLAR|AD7794_CRH_GAIN_1);
-	SendData[0] = (AD7794_CRL_REF_INT|AD7794_CRL_REF_DETECT|AD7794_CRL_BUFFER_ON|AD7794_CRL_CHANNEL_AIN1);
-	AD7794WriteReg(AD7794_CR_REG_CONFIG, SendData);
-	SendData[1] = AD7794_MRH_MODE_SINGLE;
-	SendData[0] = (AD7794_MRL_CLK_INT_NOOUT | AD7794_MRL_UPDATE_RATE_10_HZ);
-	AD7794WriteReg(AD7794_CR_REG_MODE, SendData);
-	AD7794WaitReady();
-	printf_P(PSTR("Heater Current: %lu counts\n"), AD7794GetData() );
-	
-	printf_P(PSTR("waiting for key\n"));
-	WaitForAnyKey();
-	printf_P(PSTR("done\n"));
-	//GetNewCommand();
-	//AD7794InternalTempCal(2525);*/
-	
 	return 0;
 }
 
@@ -361,14 +297,5 @@ static int _F12_Handler (void)
 	I2CSoft_Scan();
 	return  0;
 }
-
-//I think this is handled elsewhere...
-/*ISR(USART_RX_vect)
-{
-	uint8_t c;
-	c = UDR0;				//Get char from UART recieve buffer
-	CommandGetInput(c);
-	//UDR0 = c;				//Send char out on UART transmit buffer
-}*/
 
 /** @} */
