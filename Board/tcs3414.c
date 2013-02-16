@@ -41,15 +41,14 @@ uint8_t tcs3414_WriteReg(uint8_t RegToWrite, uint8_t RegData)
 {
 	uint8_t DataToSend[2];
 	uint8_t DataToReceive = 0;
+	uint8_t stat;
 
 	if(tcs3414_IsReg(RegToWrite) == 1)
 	{
 		DataToSend[0] = RegToWrite | TCS3414_COMMAND_SELECT;
 		DataToSend[1] = RegData;
-		if(I2CSoft_RW(TCS3414_I2C_ADDR, DataToSend, &DataToReceive, 2, 0) == 0)
-		{
-			return 0x00;
-		}
+		stat = I2CSoft_RW(TCS3414_I2C_ADDR, DataToSend, &DataToReceive, 2, 0);
+		return stat;
 	}
 	return 0xFF;
 }
@@ -57,14 +56,13 @@ uint8_t tcs3414_WriteReg(uint8_t RegToWrite, uint8_t RegData)
 uint8_t tcs3414_ReadReg(uint8_t RegToRead, uint8_t *RegData)
 {
 	uint8_t DataToSend = 0;
+	uint8_t stat;
 
 	if(tcs3414_IsReg(RegToRead) == 1)
 	{
 		DataToSend = RegToRead | TCS3414_COMMAND_SELECT;
-		if(I2CSoft_RW(TCS3414_I2C_ADDR, &DataToSend, RegData, 1, 1) == 0)
-		{	
-			return 0x00;
-		}
+		stat = I2CSoft_RW(TCS3414_I2C_ADDR, &DataToSend, RegData, 1, 1);
+		return stat;
 	}
 	return 0xFF;
 }

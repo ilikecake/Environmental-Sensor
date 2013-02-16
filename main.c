@@ -83,7 +83,6 @@ int main(void)
 	stdout = &USBSerialStream;
 
 	LEDs_SetAllLEDs(LEDMASK_USB_NOTREADY);
-	//sei();//
 
 	for (;;)
 	{
