@@ -110,6 +110,7 @@ void HardwareInit( void )
 	tcs3414_Init();
 	MPL115A1_Init();
 	AT45DB321D_Init();
+	SHT25_Init();
 	
 	return;
 }

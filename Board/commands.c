@@ -276,19 +276,33 @@ static int _F10_Handler (void)
 static int _F11_Handler (void)
 {
 	uint8_t temp;
+	uint8_t stat;
 	uint8_t InputCmd	= argAsInt(1);
 	uint8_t InputVal	= argAsInt(2);
 	
 	if(InputCmd == 1)
 	{
-		SHT25_ReadUserReg(&temp);
-		printf_P(PSTR("REG: 0x%02X\n"), temp);
+		stat = SHT25_ReadUserReg(&temp);
+		if(stat != SOFT_I2C_STAT_OK)
+		{
+			printf_P(PSTR("ERROR: 0x%02X\n"), stat);
+		}
+		else
+		{
+			printf_P(PSTR("REG: 0x%02X\n"), temp);
+		}
 		return 0;
 	}
 	else if(InputCmd == 2)
 	{
-		SHT25_WriteUserReg(InputVal);
+		printf_P(PSTR("Writing 0x%02X..."), InputVal);
+		stat = SHT25_WriteUserReg(InputVal);
+		printf_P(PSTR("0x%02X\n"), stat);
 		return 0;
+	}
+	else if(InputCmd == 3)
+	{
+		SHT25_Reset();
 	}
 
 	return 0;
