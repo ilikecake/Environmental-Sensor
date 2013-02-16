@@ -29,8 +29,15 @@
 #ifndef _CONFIG_H_
 #define _CONFIG_H_
 
+#include <avr/pgmspace.h>
+
+//Setup for the command interpreter
+#define COMMAND_USER_CONFIG
+#define COMMAND_USE_COMPILE_STRING			1		//Set to 1 to output the compile date/time string in the stat function
+extern const char fwCompileDate[] PROGMEM;			//The compile date/time string. This must be a string in flash called fwCompileDate.
 
 
+//Setup for the I2C software driver
 #define I2C_SOFT_USER_CONFIG
 #define I2C_SOFT_USE_INTERNAL_PULLUPS		1		//Set to 1 to use internal pullups on the pins
 #define I2C_SOFT_USE_ARBITRATION			1		//Set to 1 to enable arbitration
