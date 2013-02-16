@@ -27,5 +27,8 @@
 *.sym
 *.d
 
+#version file (updated every time the program builds)
+version.c
+
 #doxygen docs
 */docs/*
