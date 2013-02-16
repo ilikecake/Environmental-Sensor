@@ -33,8 +33,17 @@
 
 //Setup for the command interpreter
 #define COMMAND_USER_CONFIG
-#define COMMAND_USE_COMPILE_STRING			1		//Set to 1 to output the compile date/time string in the stat function
-extern const char fwCompileDate[] PROGMEM;			//The compile date/time string. This must be a string in flash called fwCompileDate.
+#define COMMAND_STAT_SHOW_COMPILE_STRING			1		//Set to 1 to output the compile date/time string in the stat function					
+#define COMMAND_STAT_SHOW_MEM_USAGE					1		//Set to 1 to show the memory usage in the stat function. NOTE: if this is enabled, the mem_usage.c must be included in the makefile
+
+//Based on the setup above
+#if COMMAND_STAT_SHOW_COMPILE_STRING == 1
+	extern const char fwCompileDate[] PROGMEM;				//The compile date/time string. This must be a string in flash called fwCompileDate.
+#endif
+
+#if COMMAND_STAT_SHOW_MEM_USAGE == 1
+	#include "mem_usage.h"									//The header that contains StackCount()
+#endif
 
 
 //Setup for the I2C software driver
