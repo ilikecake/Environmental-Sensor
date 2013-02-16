@@ -144,14 +144,17 @@ static int _F3_Handler (void)
 {
 	uint8_t DataToReceive = 0;
 	uint8_t DataToSend = argAsInt(1);
+	uint8_t stat;
 	
-	if(tcs3414_ReadReg(DataToSend, &DataToReceive) == 0)
+	stat = tcs3414_ReadReg(DataToSend, &DataToReceive);
+	
+	if(stat == 0)
 	{
 		printf_P(PSTR("reg[0x%02X]: 0x%02X\n"), DataToSend, DataToReceive);
 	}
 	else
 	{
-		printf_P(PSTR("Error\n"));
+		printf_P(PSTR("Error: 0x%02X\n"), stat);
 	}
 	
 	return 0;
