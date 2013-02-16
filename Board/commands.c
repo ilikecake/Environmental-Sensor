@@ -238,22 +238,22 @@ static int _F9_Handler (void)
 	else if(RegToRead == 2)	//Read status
 	{
 		//SPI_Init(SPI_SPEED_FCPU_DIV_2 | SPI_ORDER_MSB_FIRST | SPI_SCK_LEAD_FALLING | SPI_SAMPLE_TRAILING | SPI_MODE_MASTER);		
-		SPI_Init(SPI_SPEED_FCPU_DIV_2 | SPI_ORDER_MSB_FIRST | SPI_SCK_LEAD_RISING | SPI_SAMPLE_LEADING | SPI_MODE_MASTER);		//Mode 0,0 is good
+		InitSPIMaster(0,0);		//Mode 0,0 is good
 		AT45DB321D_Select();
-		SPI_SendByte(AT45DB321D_CMD_READ_STATUS);
-		printf("Stat: 0x%02X\n", SPI_ReceiveByte());
+		SPISendByte(AT45DB321D_CMD_READ_STATUS);
+		printf("Stat: 0x%02X\n", SPISendByte(0x00));
 		AT45DB321D_Deselect();
 	}
 	else if(RegToRead == 3)	//Read IDs
 	{
 		//SPI_Init(SPI_SPEED_FCPU_DIV_2 | SPI_ORDER_MSB_FIRST | SPI_SCK_LEAD_FALLING | SPI_SAMPLE_TRAILING | SPI_MODE_MASTER);		
-		SPI_Init(SPI_SPEED_FCPU_DIV_2 | SPI_ORDER_MSB_FIRST | SPI_SCK_LEAD_RISING | SPI_SAMPLE_LEADING | SPI_MODE_MASTER);		//Mode 0,0 is good
+		InitSPIMaster(0,0);		//Mode 0,0 is good
 		AT45DB321D_Select();
-		SPI_SendByte(AT45DB321D_CMD_READ_DEVICE_ID);
-		printf("ID[1]: 0x%02X\n", SPI_ReceiveByte());
-		printf("ID[2]: 0x%02X\n", SPI_ReceiveByte());
-		printf("ID[3]: 0x%02X\n", SPI_ReceiveByte());
-		printf("ID[4]: 0x%02X\n", SPI_ReceiveByte());
+		SPISendByte(AT45DB321D_CMD_READ_DEVICE_ID);
+		printf("ID[1]: 0x%02X\n", SPISendByte(0x00));
+		printf("ID[2]: 0x%02X\n", SPISendByte(0x00));
+		printf("ID[3]: 0x%02X\n", SPISendByte(0x00));
+		printf("ID[4]: 0x%02X\n", SPISendByte(0x00));
 		AT45DB321D_Deselect();
 	}
 

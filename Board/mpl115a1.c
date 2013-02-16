@@ -81,29 +81,30 @@ void MPL115A1_GetCalData(int16_t *A0, int16_t *B1, int16_t *B2, int16_t *C12)
 	//uint8_t tempData;
 	
 	//TODO: remove this line later?
-	SPI_Init(SPI_SPEED_FCPU_DIV_2 | SPI_ORDER_MSB_FIRST | SPI_SCK_LEAD_RISING | SPI_SAMPLE_LEADING | SPI_MODE_MASTER);
+	InitSPIMaster(0,0);
+	//SPI_Init(SPI_SPEED_FCPU_DIV_2 | SPI_ORDER_MSB_FIRST | SPI_SCK_LEAD_RISING | SPI_SAMPLE_LEADING | SPI_MODE_MASTER);
 		
 	MPL115A1_Select();
 	
-	SPI_SendByte(0x80 | (MPL115AL_REG_CAL_A0_MSB<<1));
-	*A0 = (SPI_ReceiveByte() << 8);
-	SPI_SendByte(0x80 | (MPL115AL_REG_CAL_A0_LSB<<1));
-	*A0 |= SPI_ReceiveByte();
+	SPISendByte(0x80 | (MPL115AL_REG_CAL_A0_MSB<<1));
+	*A0 = (SPISendByte(0x00) << 8);
+	SPISendByte(0x80 | (MPL115AL_REG_CAL_A0_LSB<<1));
+	*A0 |= SPISendByte(0x00);
 	
-	SPI_SendByte(0x80 | (MPL115AL_REG_CAL_B1_MSB<<1));
-	*B1 = (SPI_ReceiveByte() << 8);
-	SPI_SendByte(0x80 | (MPL115AL_REG_CAL_B1_LSB<<1));
-	*B1 |= SPI_ReceiveByte();
+	SPISendByte(0x80 | (MPL115AL_REG_CAL_B1_MSB<<1));
+	*B1 = (SPISendByte(0x00) << 8);
+	SPISendByte(0x80 | (MPL115AL_REG_CAL_B1_LSB<<1));
+	*B1 |= SPISendByte(0x00);
 	
-	SPI_SendByte(0x80 | (MPL115AL_REG_CAL_B2_MSB<<1));
-	*B2 = (SPI_ReceiveByte() << 8);
-	SPI_SendByte(0x80 | (MPL115AL_REG_CAL_B2_LSB<<1));
-	*B2 |= SPI_ReceiveByte();
+	SPISendByte(0x80 | (MPL115AL_REG_CAL_B2_MSB<<1));
+	*B2 = (SPISendByte(0x00) << 8);
+	SPISendByte(0x80 | (MPL115AL_REG_CAL_B2_LSB<<1));
+	*B2 |= SPISendByte(0x00);
 	
-	SPI_SendByte(0x80 | (MPL115AL_REG_CAL_C12_MSB<<1));
-	*C12 = (SPI_ReceiveByte() << 8);
-	SPI_SendByte(0x80 | (MPL115AL_REG_CAL_C12_LSB<<1));
-	*C12 |= SPI_ReceiveByte();
+	SPISendByte(0x80 | (MPL115AL_REG_CAL_C12_MSB<<1));
+	*C12 = (SPISendByte(0x00) << 8);
+	SPISendByte(0x80 | (MPL115AL_REG_CAL_C12_LSB<<1));
+	*C12 |= SPISendByte(0x00);
 	
 	MPL115A1_Deselect();
 	return;
@@ -111,28 +112,29 @@ void MPL115A1_GetCalData(int16_t *A0, int16_t *B1, int16_t *B2, int16_t *C12)
 
 void MPL115A1_GetConversion(uint16_t *PressureData, uint16_t *TemperatureData)
 {
-	SPI_Init(SPI_SPEED_FCPU_DIV_2 | SPI_ORDER_MSB_FIRST | SPI_SCK_LEAD_RISING | SPI_SAMPLE_LEADING | SPI_MODE_MASTER);
+	InitSPIMaster(0,0);
+	//SPI_Init(SPI_SPEED_FCPU_DIV_2 | SPI_ORDER_MSB_FIRST | SPI_SCK_LEAD_RISING | SPI_SAMPLE_LEADING | SPI_MODE_MASTER);
 	
 	//Start conversions
 	MPL115A1_Select();
-	SPI_SendByte(MPL115AL_REG_CONVERT<<1);
-	SPI_SendByte(0x00);
+	SPISendByte(MPL115AL_REG_CONVERT<<1);
+	SPISendByte(0x00);
 	MPL115A1_Deselect();
 	
 	DelayMS(4);
 	
 	MPL115A1_Select();
-	SPI_SendByte(0x80 | (MPL115AL_REG_PRESSURE_MSB << 1));
-	*PressureData = (SPI_ReceiveByte() << 8);
+	SPISendByte(0x80 | (MPL115AL_REG_PRESSURE_MSB << 1));
+	*PressureData = (SPISendByte(0x00) << 8);
 	
-	SPI_SendByte(0x80 | (MPL115AL_REG_PRESSURE_LSB << 1));
-	*PressureData |= (SPI_ReceiveByte());
+	SPISendByte(0x80 | (MPL115AL_REG_PRESSURE_LSB << 1));
+	*PressureData |= (SPISendByte(0x00));
 	
-	SPI_SendByte(0x80 | (MPL115AL_REG_TEMP_MSB << 1));
-	*TemperatureData = (SPI_ReceiveByte() << 8);
+	SPISendByte(0x80 | (MPL115AL_REG_TEMP_MSB << 1));
+	*TemperatureData = (SPISendByte(0x00) << 8);
 	
-	SPI_SendByte(0x80 | (MPL115AL_REG_TEMP_LSB << 1));
-	*TemperatureData |= (SPI_ReceiveByte());
+	SPISendByte(0x80 | (MPL115AL_REG_TEMP_LSB << 1));
+	*TemperatureData |= (SPISendByte(0x00));
 	
 	MPL115A1_Deselect();
 	

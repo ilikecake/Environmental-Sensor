@@ -50,13 +50,13 @@
 		//Lufa includes
 		#include <LUFA-120730/Drivers/Board/LEDs.h>
 		#include <LUFA-120730/Drivers/USB/USB.h>
-		#include <LUFA-120730/Drivers/Peripheral/SPI.h>
 		
 		//Common module includes
 		#include "common_types.h"
 		#include "i2c_soft.h"
 		#include "commands.h"
 		#include "dfu_jump.h"
+		#include "spi.h"
 		
 		//Board includes
 		#include "Board/Hardware.h"

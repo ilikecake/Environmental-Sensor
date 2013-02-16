@@ -65,8 +65,8 @@ void HardwareInit( void )
 	clock_prescale_set(clock_div_1);
 
 	//Hardware Initialization
-	SPI_Init(SPI_SPEED_FCPU_DIV_2 | SPI_ORDER_MSB_FIRST | SPI_SCK_LEAD_FALLING | SPI_SAMPLE_TRAILING | SPI_MODE_MASTER);
-
+	
+	
 	//Setup timer 0 for 1ms interrupts
 	//CTC Mode
 	//Clock is Fcpu/64
@@ -102,6 +102,7 @@ void HardwareInit( void )
 	PORTD	= 0x00;
 	
 	//Enable USB and interrupts
+	InitSPIMaster(0,0);
 	I2CSoft_Init();
 	USB_Init();
 	
