@@ -256,7 +256,29 @@ void AT45DB321D_ChipErase(void)
 	SPISendByte(AT45DB321D_CMD_CHIP_ERASE3);
 	SPISendByte(AT45DB321D_CMD_CHIP_ERASE4);
 	AT45DB321D_Deselect();
-	return 
+	return;
+}
+
+void AT45DB321D_Protect(void)
+{
+	AT45DB321D_Select();
+	SPISendByte(0x3D);
+	SPISendByte(0x2A);
+	SPISendByte(0x7F);
+	SPISendByte(0xA9);
+	AT45DB321D_Deselect();
+	return;
+}
+
+void AT45DB321D_Unprotect(void)
+{
+	AT45DB321D_Select();
+	SPISendByte(0x3D);
+	SPISendByte(0x2A);
+	SPISendByte(0x7F);
+	SPISendByte(0x9A);
+	AT45DB321D_Deselect();
+	return;
 }
 
 //This command should only need to be sent once. It can not be undone.
