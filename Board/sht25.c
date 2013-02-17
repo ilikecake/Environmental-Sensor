@@ -79,7 +79,104 @@ uint8_t SHT25_WriteUserReg(uint8_t RegValue)
 	return stat;
 }
 
+uint8_t SHT25_ReadTemp(uint16_t *TempValue)
+{
+	uint8_t DataToSend;
+	uint8_t DataToReceive[3];
+	uint8_t stat;
+	uint8_t i;
 
+	DataToSend = SHT25_READ_TEMP_NOHOLD;
 
+	//Start temperature conversion
+	stat = I2CSoft_RW(SHT25_I2C_ADDR, &DataToSend, NULL, 1, 0);
+	
+	DelayMS(75);
+	
+	for(i=0; i<20; i++)
+	{
+		stat = I2CSoft_RW(SHT25_I2C_ADDR, NULL, DataToReceive, 0, 3);
+		if(stat == SOFT_I2C_STAT_OK)
+		{
+			break;
+		}
+		DelayMS(10);
+	}
+	
+	if(i >= 20)
+	{
+		return SHT25_RETURN_STATUS_TIMEOUT;
+	}
+
+	*TempValue = (DataToReceive[0] << 8) | (DataToReceive[1]);
+	
+	if(SHT25_VerifyCRC(*TempValue, DataToReceive[2]) == 1)
+	{
+		return SHT25_RETURN_STATUS_OK;
+	}
+	return SHT25_RETURN_STATUS_CRC_ERROR;
+}
+
+uint8_t SHT25_ReadRH(uint16_t *RHValue)
+{
+	uint8_t DataToSend;
+	uint8_t DataToReceive[3];
+	uint8_t stat;
+	uint8_t i;
+
+	DataToSend = SHT25_READ_RH_NOHOLD;
+
+	//Start temperature conversion
+	stat = I2CSoft_RW(SHT25_I2C_ADDR, &DataToSend, NULL, 1, 0);
+	
+	DelayMS(30);
+	
+	for(i=0; i<20; i++)
+	{
+		stat = I2CSoft_RW(SHT25_I2C_ADDR, NULL, DataToReceive, 0, 3);
+		if(stat == SOFT_I2C_STAT_OK)
+		{
+			break;
+		}
+		DelayMS(10);
+	}
+	
+	if(i >= 20)
+	{
+		return SHT25_RETURN_STATUS_TIMEOUT;
+	}
+
+	*RHValue = (DataToReceive[0] << 8) | (DataToReceive[1]);
+	
+	if(SHT25_VerifyCRC(*RHValue, DataToReceive[2]) == 1)
+	{
+		return SHT25_RETURN_STATUS_OK;
+	}
+	return SHT25_RETURN_STATUS_CRC_ERROR;
+}
+
+uint8_t SHT25_VerifyCRC(uint16_t DataValue, uint8_t CRCValue)
+{
+	uint32_t CRCPoly = 0b100110001000000000000000;		//Polynomial is x^8+x^5+x^4+1
+	uint32_t buffer;
+	uint8_t i;
+	
+	buffer = ((uint32_t)DataValue << 8) | (CRCValue);
+	
+	for(i=23; i>7; i--)
+	{		
+		if((buffer & (1lu<<i)) > 0)
+		{
+			buffer ^= CRCPoly;
+		}
+		CRCPoly = CRCPoly>>1;
+	}
+	
+	if(buffer == 0)
+	{
+		return 1;
+	}
+	return 0;
+}
 
 /** @} */

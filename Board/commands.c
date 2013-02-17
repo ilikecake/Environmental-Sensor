@@ -279,6 +279,7 @@ static int _F11_Handler (void)
 	uint8_t stat;
 	uint8_t InputCmd	= argAsInt(1);
 	uint8_t InputVal	= argAsInt(2);
+	uint16_t RecievedData;
 	
 	if(InputCmd == 1)
 	{
@@ -304,7 +305,41 @@ static int _F11_Handler (void)
 	{
 		SHT25_Reset();
 	}
-
+	else if(InputCmd == 4)
+	{
+		stat = SHT25_ReadTemp(&RecievedData);
+		if(stat == SHT25_RETURN_STATUS_OK)
+		{
+			printf_P(PSTR("Temp: 0x%04X\n"), RecievedData);
+		}
+		else if(stat == SHT25_RETURN_STATUS_CRC_ERROR)
+		{
+			printf_P(PSTR("CRC Error\n"));
+		}
+		else
+		{
+			printf_P(PSTR("Timeout\n"));
+		}
+	}
+	else if(InputCmd == 5)
+	{
+		stat = SHT25_ReadRH(&RecievedData);
+		if(stat == SHT25_RETURN_STATUS_OK)
+		{
+			printf_P(PSTR("RH: 0x%04X\n"), RecievedData);
+		}
+		else if(stat == SHT25_RETURN_STATUS_CRC_ERROR)
+		{
+			printf_P(PSTR("CRC Error\n"));
+		}
+		else
+		{
+			printf_P(PSTR("Timeout\n"));
+		}
+	}
+	
+	
+	
 	return 0;
 }
 

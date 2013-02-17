@@ -51,19 +51,29 @@
 #define SHT25_OTP_OFF				0x02		//Don't turn OTP on
 #define SHT25_OTP_ON				0x00
 
-#define SHT25_UREG_RESERVED_MASK	0x38	
+#define SHT25_UREG_RESERVED_MASK	0x38
+
+#define SHT25_RETURN_STATUS_OK			0x00
+#define SHT25_RETURN_STATUS_CRC_ERROR	0x01
+#define SHT25_RETURN_STATUS_TIMEOUT		0x02
 
 void SHT25_Init( void );
 uint8_t SHT25_Reset(void);
 uint8_t SHT25_ReadUserReg(uint8_t *RegValue);
 uint8_t SHT25_WriteUserReg(uint8_t RegValue);
 
-//Use the no hold method, and poll the device to see when it is done.
-uint8_t SHT25_ReadTemp(uint16_t TempValue);
+/**Use the no hold method, and poll the device to see when it is done.
+ * 
+ * Returns 0 for a valid temperature reading, 1 for a CRC error, and 2 for a timeout.
+ */
+uint8_t SHT25_ReadTemp(uint16_t *TempValue);
 
 //Use the no hold method, and poll the device to see when it is done.
 //Return relative humidity in %
-uint8_t SHT25_ReadRH(uint16_t RHValue);
+uint8_t SHT25_ReadRH(uint16_t *RHValue);
+
+//Returns 1 if the data and CRC match, 0 otherwise
+uint8_t SHT25_VerifyCRC(uint16_t DataValue, uint8_t CRCValue);
 
 
 #endif
