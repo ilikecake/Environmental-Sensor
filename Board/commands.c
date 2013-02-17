@@ -108,7 +108,7 @@ const CommandListItem AppCommandList[] PROGMEM =
 	{ _F5_NAME, 	0,  0,	_F5_Handler,	_F5_DESCRIPTION,	_F5_HELPTEXT	},		//gettime
 	{ _F6_NAME, 	2,  2,	_F6_Handler,	_F6_DESCRIPTION,	_F6_HELPTEXT	},		//writereg	
 	{ _F8_NAME,		0,  0,	_F8_Handler,	_F8_DESCRIPTION,	_F8_HELPTEXT	},		//data
-	{ _F9_NAME,		1,  1,	_F9_Handler,	_F9_DESCRIPTION,	_F9_HELPTEXT	},		//memread
+	{ _F9_NAME,		1,  3,	_F9_Handler,	_F9_DESCRIPTION,	_F9_HELPTEXT	},		//memread
 	{ _F10_NAME,	0,  0,	_F10_Handler,	_F10_DESCRIPTION,	_F10_HELPTEXT	},		//pres
 	{ _F11_NAME,	1,  2,	_F11_Handler,	_F11_DESCRIPTION,	_F11_HELPTEXT	},		//rh
 	{ _F12_NAME,	0,  0,	_F12_Handler,	_F12_DESCRIPTION,	_F12_HELPTEXT	},		//twiscan
@@ -229,7 +229,11 @@ static int _F8_Handler (void)
 //Read a register from the memory
 static int _F9_Handler (void)
 {
-	uint8_t RegToRead = argAsInt(1);
+	uint8_t RegToRead 		= argAsInt(1);
+	uint8_t BufferNumber 	= argAsInt(2);
+	uint16_t Addr 			= argAsInt(3);
+	uint8_t DataBuffer[10];
+	
 	if(RegToRead == 1)
 	{
 		AT45DB321D_Select();
@@ -242,10 +246,7 @@ static int _F9_Handler (void)
 	{
 		//SPI_Init(SPI_SPEED_FCPU_DIV_2 | SPI_ORDER_MSB_FIRST | SPI_SCK_LEAD_FALLING | SPI_SAMPLE_TRAILING | SPI_MODE_MASTER);		
 		InitSPIMaster(0,0);		//Mode 0,0 is good
-		AT45DB321D_Select();
-		SPISendByte(AT45DB321D_CMD_READ_STATUS);
-		printf("Stat: 0x%02X\n", SPISendByte(0x00));
-		AT45DB321D_Deselect();
+		printf_P(PSTR("Stat: 0x%02X\n"), AT45DB321D_ReadStatus());
 	}
 	else if(RegToRead == 3)	//Read IDs
 	{
@@ -253,13 +254,55 @@ static int _F9_Handler (void)
 		InitSPIMaster(0,0);		//Mode 0,0 is good
 		AT45DB321D_Select();
 		SPISendByte(AT45DB321D_CMD_READ_DEVICE_ID);
-		printf("ID[1]: 0x%02X\n", SPISendByte(0x00));
-		printf("ID[2]: 0x%02X\n", SPISendByte(0x00));
-		printf("ID[3]: 0x%02X\n", SPISendByte(0x00));
-		printf("ID[4]: 0x%02X\n", SPISendByte(0x00));
+		printf_P(PSTR("ID[1]: 0x%02X\n"), SPISendByte(0x00));
+		printf_P(PSTR("ID[2]: 0x%02X\n"), SPISendByte(0x00));
+		printf_P(PSTR("ID[3]: 0x%02X\n"), SPISendByte(0x00));
+		printf_P(PSTR("ID[4]: 0x%02X\n"), SPISendByte(0x00));
 		AT45DB321D_Deselect();
 	}
-
+	else if(RegToRead == 4)	//Read bytes from buffer
+	{
+		printf_P(PSTR("Reading 5 bytes from buffer %u at address 0x%04X\n"), BufferNumber, Addr);
+		AT45DB321D_BufferRead(BufferNumber, Addr, DataBuffer, 5);
+		printf_P(PSTR("0: 0x%02X\n"), DataBuffer[0]);
+		printf_P(PSTR("1: 0x%02X\n"), DataBuffer[1]);
+		printf_P(PSTR("2: 0x%02X\n"), DataBuffer[2]);
+		printf_P(PSTR("3: 0x%02X\n"), DataBuffer[3]);
+		printf_P(PSTR("4: 0x%02X\n"), DataBuffer[4]);
+	}
+	
+	else if(RegToRead == 5)	//write bytes to buffer
+	{
+		printf_P(PSTR("writing 5 bytes to buffer %u at address 0x%04X\n"), BufferNumber, Addr);
+		DataBuffer[0] = 0xAE;
+		DataBuffer[1] = 0x14;
+		DataBuffer[2] = 0x9A;
+		DataBuffer[3] = 0x22;
+		DataBuffer[4] = 0x17;
+		AT45DB321D_BufferWrite(BufferNumber, Addr, DataBuffer, 5);
+	}
+	
+	else if(RegToRead == 6)	//Copy page to buffer
+	{
+		printf_P(PSTR("Copy page 0x%04X to buffer %u\n"), Addr, BufferNumber);
+		AT45DB321D_CopyPageToBuffer(BufferNumber, Addr);
+		printf_P(PSTR("Stat: 0x%02X\n"), AT45DB321D_WaitForReady());
+	}
+	
+	else if(RegToRead == 7)	//Copy buffer to page
+	{
+		printf_P(PSTR("Copy buffer %u to page 0x%04X\n"), BufferNumber, Addr);
+		AT45DB321D_CopyBufferToPage(BufferNumber, Addr);
+		printf_P(PSTR("Stat: 0x%02X\n"), AT45DB321D_WaitForReady());
+	}
+	
+	else if(RegToRead == 8)	//Erase page
+	{
+		printf_P(PSTR("Erase page 0x%04X\n"), Addr);
+		AT45DB321D_ErasePage(Addr);
+		printf_P(PSTR("Stat: 0x%02X\n"), AT45DB321D_WaitForReady());
+	}
+	
 	return 0;
 }
 

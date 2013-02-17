@@ -16,7 +16,7 @@
 *	\brief		Header file for the AT45DB321D dataflash driver.
 *	\author		Pat Satyshur
 *	\version	1.0
-*	\date		2/8/2013
+*	\date		2/17/2013
 *	\copyright	Copyright 2013, Pat Satyshur
 *	\ingroup 	hardware
 *
@@ -28,6 +28,11 @@
 
 #include "stdint.h"
 
+#define AT45DB321D_PAGE_SIZE_BYTES		528
+#if (AT45DB321D_PAGE_SIZE_BYTES != 512) && (AT45DB321D_PAGE_SIZE_BYTES != 528)
+	#error: Page size is incorrect. Must be 512 or 528.
+#endif
+
 #define AT45DB321D_CMD_ARRAY_READ_LEGACY		0xE8
 #define AT45DB321D_CMD_ARRAY_READ_HF			0x0B
 #define AT45DB321D_CMD_ARRAY_READ_LF			0x03
@@ -37,8 +42,8 @@
 #define AT45DB321D_CMD_BUFFER2_READ_HS			0xD6
 #define AT45DB321D_CMD_BUFFER2_READ_LS			0xD3
 
-#define AT45DB321D_CMD_MEMORY_TO BUFFER1_WRITE		0x53
-#define AT45DB321D_CMD_MEMORY_TO_BUFFER2_WRITE		0x55
+#define AT45DB321D_CMD_TRANSFER_PAGE_TO_BUFFER1		0x53
+#define AT45DB321D_CMD_TRANSFER_PAGE_TO_BUFFER2		0x55
 #define AT45DB321D_CMD_MEMORY_TO_BUFFER1_COMPARE	0x60
 #define AT45DB321D_CMD_MEMORY_TO_BUFFER2_COMPARE	0x61
 #define AT45DB321D_CMD_PAGE_REWRITE_BUFFER1			0x58
@@ -51,10 +56,10 @@
 
 #define AT45DB321D_CMD_BUFFER1_WRITE			0x84
 #define AT45DB321D_CMD_BUFFER2_WRITE			0x87
-#define AT45DB321D_CMD_BUFFER1_TO_MAIN_ERASE	0x83
-#define AT45DB321D_CMD_BUFFER2_TO_MAIN_ERASE	0x86
-#define AT45DB321D_CMD_BUFFER1_TO_MAIN_NOERASE	0x88
-#define AT45DB321D_CMD_BUFFER2_TO_MAIN_NOERASE	0x89
+#define AT45DB321D_CMD_BUFFER1_TO_PAGE_ERASE	0x83
+#define AT45DB321D_CMD_BUFFER2_TO_PAGE_ERASE	0x86
+#define AT45DB321D_CMD_BUFFER1_TO_PAGE_NOERASE	0x88
+#define AT45DB321D_CMD_BUFFER2_TO_PAGE_NOERASE	0x89
 #define AT45DB321D_CMD_PAGE_ERASE				0x81
 #define AT45DB321D_CMD_BLOCK_ERASE				0x50
 #define AT45DB321D_CMD_SECTOR_ERASE				0x7C
@@ -71,10 +76,53 @@
 #define AT45DB321D_CMD_CHIP_ERASE3				0x80
 #define AT45DB321D_CMD_CHIP_ERASE4				0x9A
 
-void AT45DB321D_Init(void);
+#define AT45DB321D_STATUS_READY_MASK			0x80
 
+void AT45DB321D_Init(void);
 void AT45DB321D_Select(void);
 void AT45DB321D_Deselect(void);
+
+/** Returns the status register of the device */
+uint8_t AT45DB321D_ReadStatus(void);
+
+/** Reads 'BytesToRead' bytes buffer number 'Buffer' starting at address 'BufferStartAddress' to 'DataReadBuffer'  */
+void AT45DB321D_BufferRead(uint8_t Buffer, uint16_t BufferStartAddress, uint8_t DataReadBuffer[], uint16_t BytesToRead);
+
+/** Writes 'BytesToWrite' bytes from 'DataWriteBuffer' to buffer number 'Buffer' starting at address 'BufferStartAddress' */
+void AT45DB321D_BufferWrite(uint8_t Buffer, uint16_t BufferStartAddress, uint8_t DataWriteBuffer[], uint16_t BytesToWrite);
+
+/** Copies the contents of main memory page 'PageAddress' into buffer number 'Buffer' */
+void AT45DB321D_CopyPageToBuffer(uint8_t Buffer, uint16_t PageAddress);
+
+/** Copies the contents of 'Buffer' into main memory page 'PageAddress.' Uses the write-with-erase command. */
+void AT45DB321D_CopyBufferToPage(uint8_t Buffer, uint16_t PageAddress);
+
+/** Erase page 'PageAddress' */
+void AT45DB321D_ErasePage(uint16_t PageAddress);
+
+/** Waits for the RDY/BUSY bit in the status register to go high. This indicates that the part is ready for another command.
+ * 
+ * Returns the status register
+ */
+uint8_t AT45DB321D_WaitForReady(void);
+
+/** Send the page address to the device */
+void AT45DB321D_SendPageAddress(uint16_t PageAddress);
+
+/** Powerdown the device. Once powered down, the device will ignore all commands except the power up command */
+void AT45DB321D_Powerdown(void);
+
+/** Power up the device from power down mode */
+void AT45DB321D_Powerup(void);
+
+/** Erase the entire chip */
+void AT45DB321D_ChipErase(void);
+
+/** Set the page size to 512 */
+void AT45DB321D_SwitchTo512(void);
+
+//not implemented yet
+void AT45DB321D_SectorErase(uint8_t SectorNumber);
 
 void AT45DB321D_Protect(void);
 void AT45DB321D_Unprotect(void);
@@ -87,11 +135,6 @@ void AT45DB321D_LockSectors(uint8_t *ProtectData);			//I probably will not imple
 
 void AT45DB321D_ReadSecurityRegister(uint8_t *SecurityReg);
 void AT45DB321D_WriteSecurityRegister(uint8_t *SecurityReg);
-
-void AT45DB321D_Powerdown(void);
-void AT45DB321D_Powerup(void);
-
-void AT45DB321D_SwitchTo512(void);	//This only needs to happen once, it cannot be undone.
 
 #endif
 /** @} */
