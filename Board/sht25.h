@@ -16,7 +16,7 @@
 *	\brief		Header file for the SHT25 hardware driver.
 *	\author		Pat Satyshur
 *	\version	1.0
-*	\date		2/7/2013
+*	\date		2/17/2013
 *	\copyright	Copyright 2013, Pat Satyshur
 *	\ingroup 	hardware
 *

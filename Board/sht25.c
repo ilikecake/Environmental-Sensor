@@ -16,7 +16,7 @@
 *	\brief		SHT25 humidity sensor driver.
 *	\author		Pat Satyshur
 *	\version	1.0
-*	\date		2/7/2013
+*	\date		2/17/2013
 *	\copyright	Copyright 2013, Pat Satyshur
 *	\ingroup 	hardware
 *
