@@ -39,6 +39,11 @@
 #define SHT25_READ_USER_REG			0xE7
 #define SHT25_RESET					0xFE
 
+#define SHT25_READ_ID1_ADDR1		0xFA
+#define SHT25_READ_ID1_ADDR2		0x0F
+#define SHT25_READ_ID2_ADDR1		0xFC
+#define SHT25_READ_ID2_ADDR2		0xC9
+
 //User register definitions
 #define SHT25_UREG_RES_12b_14b		0x00
 #define SHT25_UREG_RES_8b_12b		0x01
@@ -61,6 +66,8 @@ void SHT25_Init( void );
 uint8_t SHT25_Reset(void);
 uint8_t SHT25_ReadUserReg(uint8_t *RegValue);
 uint8_t SHT25_WriteUserReg(uint8_t RegValue);
+
+uint8_t SHT25_ReadID(uint16_t *SNA, uint32_t *SNB, uint16_t *SNC);
 
 /** Read the temperature from the device
  * Use the no hold method, and poll the device to see when it is done.

@@ -195,4 +195,65 @@ uint8_t SHT25_VerifyCRC(uint16_t DataValue, uint8_t CRCValue)
 	return 0;
 }
 
+uint8_t SHT25_ReadID(uint16_t *SNA, uint32_t *SNB, uint16_t *SNC)
+{
+	uint8_t DataToSend[2];
+	uint8_t DataToReceive[8];
+	uint8_t stat;
+	
+	//Initalize the serial number strings
+	*SNA = 0;
+	*SNB = 0;
+	*SNC = 0;
+
+	//Get first part of ID
+	DataToSend[0] = SHT25_READ_ID1_ADDR1;
+	DataToSend[1] = SHT25_READ_ID1_ADDR2;
+	
+	stat = I2CSoft_RW(SHT25_I2C_ADDR, DataToSend, DataToReceive, 2, 8);
+	if(stat != SOFT_I2C_STAT_OK)
+	{
+		//I2C error when reading SNB
+		return SHT25_RETURN_STATUS_TIMEOUT;
+	}
+	
+	//Verify CRC of first section
+	if( (SHT25_VerifyCRC(DataToReceive[0], DataToReceive[1]) == 1) && (SHT25_VerifyCRC(DataToReceive[2], DataToReceive[3]) == 1) && (SHT25_VerifyCRC(DataToReceive[4], DataToReceive[5]) == 1) && (SHT25_VerifyCRC(DataToReceive[6], DataToReceive[7]) == 1) )
+	{
+		*SNB = (((uint32_t)DataToReceive[0]) << 24) | (((uint32_t)DataToReceive[2]) << 16) | (((uint32_t)DataToReceive[4]) << 8) | ((uint32_t)DataToReceive[6]);
+	}
+	else
+	{
+		//CRC error
+		*SNB = 0xFF;
+		return SHT25_RETURN_STATUS_CRC_ERROR;
+	}
+	
+	//Get second part of ID
+	DataToSend[0] = SHT25_READ_ID2_ADDR1;
+	DataToSend[1] = SHT25_READ_ID2_ADDR2;
+	
+	stat = I2CSoft_RW(SHT25_I2C_ADDR, DataToSend, DataToReceive, 2, 6);
+	if(stat != SOFT_I2C_STAT_OK)
+	{
+		//I2C error when reading SNA/SNC
+		return SHT25_RETURN_STATUS_TIMEOUT;
+	}
+	
+	*SNA = (((uint16_t)DataToReceive[3]) << 8) | ((uint16_t)DataToReceive[4]);
+	*SNC = (((uint16_t)DataToReceive[0]) << 8) | ((uint16_t)DataToReceive[1]);
+	
+	//Verify CRC of second section
+	if( (SHT25_VerifyCRC(*SNA, DataToReceive[5]) == 1) && (SHT25_VerifyCRC(*SNC, DataToReceive[2]) == 1) )
+	{
+		return SHT25_RETURN_STATUS_OK;
+	}
+	else
+	{
+		*SNA = 0xFF;
+		*SNC = 0xFF;
+		return SHT25_RETURN_STATUS_CRC_ERROR;
+	}
+}
+
 /** @} */

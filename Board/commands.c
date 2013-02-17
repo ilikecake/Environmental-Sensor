@@ -281,6 +281,10 @@ static int _F11_Handler (void)
 	uint8_t InputVal	= argAsInt(2);
 	int16_t RecievedData;
 	
+	uint16_t SNA;
+	uint32_t SNB;
+	uint16_t SNC;
+	
 	if(InputCmd == 1)
 	{
 		stat = SHT25_ReadUserReg(&temp);
@@ -338,8 +342,22 @@ static int _F11_Handler (void)
 			printf_P(PSTR("Timeout\n"));
 		}
 	}
-	
-	
+	else if(InputCmd == 6)
+	{
+		stat = SHT25_ReadID(&SNA, &SNB, &SNC);
+		if(stat == SHT25_RETURN_STATUS_OK)
+		{
+			printf_P(PSTR("SN: 0x%04X%08lX%04X\n"), SNA, SNB, SNC);
+		}
+		else if(stat == SHT25_RETURN_STATUS_CRC_ERROR)
+		{
+			printf_P(PSTR("CRC Error\n"));
+		}
+		else
+		{
+			printf_P(PSTR("I2C error\n"));
+		}
+	}
 	
 	return 0;
 }
