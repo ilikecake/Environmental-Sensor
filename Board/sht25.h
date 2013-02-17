@@ -62,15 +62,19 @@ uint8_t SHT25_Reset(void);
 uint8_t SHT25_ReadUserReg(uint8_t *RegValue);
 uint8_t SHT25_WriteUserReg(uint8_t RegValue);
 
-/**Use the no hold method, and poll the device to see when it is done.
- * 
- * Returns 0 for a valid temperature reading, 1 for a CRC error, and 2 for a timeout.
+/** Read the temperature from the device
+ * Use the no hold method, and poll the device to see when it is done.
+ * If reading is successful, TempValue will be the temperature in 100*C
+ * Returns SHT25_RETURN_STATUS_OK, SHT25_RETURN_STATUS_CRC_ERROR, or SHT25_RETURN_STATUS_TIMEOUT
  */
-uint8_t SHT25_ReadTemp(uint16_t *TempValue);
+uint8_t SHT25_ReadTemp(int16_t *TempValue);
 
-//Use the no hold method, and poll the device to see when it is done.
-//Return relative humidity in %
-uint8_t SHT25_ReadRH(uint16_t *RHValue);
+/** Read the relative humidity from the device
+ * Use the no hold method, and poll the device to see when it is done.
+ * If reading is successful, RHValue will be the relative humidity in 100*%RH
+ * Returns SHT25_RETURN_STATUS_OK, SHT25_RETURN_STATUS_CRC_ERROR, or SHT25_RETURN_STATUS_TIMEOUT
+ */
+uint8_t SHT25_ReadRH(int16_t *RHValue);
 
 //Returns 1 if the data and CRC match, 0 otherwise
 uint8_t SHT25_VerifyCRC(uint16_t DataValue, uint8_t CRCValue);

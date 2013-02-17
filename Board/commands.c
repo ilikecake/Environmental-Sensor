@@ -279,7 +279,7 @@ static int _F11_Handler (void)
 	uint8_t stat;
 	uint8_t InputCmd	= argAsInt(1);
 	uint8_t InputVal	= argAsInt(2);
-	uint16_t RecievedData;
+	int16_t RecievedData;
 	
 	if(InputCmd == 1)
 	{
@@ -303,6 +303,7 @@ static int _F11_Handler (void)
 	}
 	else if(InputCmd == 3)
 	{
+		printf_P(PSTR("Device reset\n"));
 		SHT25_Reset();
 	}
 	else if(InputCmd == 4)
@@ -310,7 +311,7 @@ static int _F11_Handler (void)
 		stat = SHT25_ReadTemp(&RecievedData);
 		if(stat == SHT25_RETURN_STATUS_OK)
 		{
-			printf_P(PSTR("Temp: 0x%04X\n"), RecievedData);
+			printf_P(PSTR("Temp %d.%02u C\n"), RecievedData/100, RecievedData%100);
 		}
 		else if(stat == SHT25_RETURN_STATUS_CRC_ERROR)
 		{
@@ -326,7 +327,7 @@ static int _F11_Handler (void)
 		stat = SHT25_ReadRH(&RecievedData);
 		if(stat == SHT25_RETURN_STATUS_OK)
 		{
-			printf_P(PSTR("RH: 0x%04X\n"), RecievedData);
+			printf_P(PSTR("RH: %u.%02u%%\n"), RecievedData/100, RecievedData%100);
 		}
 		else if(stat == SHT25_RETURN_STATUS_CRC_ERROR)
 		{

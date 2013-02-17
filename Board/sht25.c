@@ -79,8 +79,13 @@ uint8_t SHT25_WriteUserReg(uint8_t RegValue)
 	return stat;
 }
 
-uint8_t SHT25_ReadTemp(uint16_t *TempValue)
+//TODO: See if I can get rid of some of these variables.
+//TODO: Will this ever be negative?
+//TODO: Does the big buffer need to be 32 bits?
+uint8_t SHT25_ReadTemp(int16_t *TempValue)
 {
+	int32_t BigBuffer;
+	uint16_t SmallBuffer;
 	uint8_t DataToSend;
 	uint8_t DataToReceive[3];
 	uint8_t stat;
@@ -91,8 +96,8 @@ uint8_t SHT25_ReadTemp(uint16_t *TempValue)
 	//Start temperature conversion
 	stat = I2CSoft_RW(SHT25_I2C_ADDR, &DataToSend, NULL, 1, 0);
 	
+	//Wait for response
 	DelayMS(75);
-	
 	for(i=0; i<20; i++)
 	{
 		stat = I2CSoft_RW(SHT25_I2C_ADDR, NULL, DataToReceive, 0, 3);
@@ -105,20 +110,27 @@ uint8_t SHT25_ReadTemp(uint16_t *TempValue)
 	
 	if(i >= 20)
 	{
+		//Device did not respond
 		return SHT25_RETURN_STATUS_TIMEOUT;
 	}
 
-	*TempValue = (DataToReceive[0] << 8) | (DataToReceive[1]);
+	SmallBuffer = (DataToReceive[0] << 8) | (DataToReceive[1]);
 	
-	if(SHT25_VerifyCRC(*TempValue, DataToReceive[2]) == 1)
+	if(SHT25_VerifyCRC(SmallBuffer, DataToReceive[2]) == 1)
 	{
+		BigBuffer = (17572l*(int32_t)(SmallBuffer) - 307036160l)/(65536l);
+		*TempValue = (int16_t)BigBuffer;
 		return SHT25_RETURN_STATUS_OK;
 	}
 	return SHT25_RETURN_STATUS_CRC_ERROR;
 }
 
-uint8_t SHT25_ReadRH(uint16_t *RHValue)
+//TODO: See if I can get rid of some of these variables.
+//TODO: Does the big buffer need to be 32 bits?
+uint8_t SHT25_ReadRH(int16_t *RHValue)
 {
+	uint32_t BigBuffer;
+	uint16_t SmallBuffer;
 	uint8_t DataToSend;
 	uint8_t DataToReceive[3];
 	uint8_t stat;
@@ -126,11 +138,11 @@ uint8_t SHT25_ReadRH(uint16_t *RHValue)
 
 	DataToSend = SHT25_READ_RH_NOHOLD;
 
-	//Start temperature conversion
+	//Start RH conversion
 	stat = I2CSoft_RW(SHT25_I2C_ADDR, &DataToSend, NULL, 1, 0);
 	
+	//Wait for response
 	DelayMS(30);
-	
 	for(i=0; i<20; i++)
 	{
 		stat = I2CSoft_RW(SHT25_I2C_ADDR, NULL, DataToReceive, 0, 3);
@@ -143,13 +155,17 @@ uint8_t SHT25_ReadRH(uint16_t *RHValue)
 	
 	if(i >= 20)
 	{
+		//Device did not respond
 		return SHT25_RETURN_STATUS_TIMEOUT;
 	}
 
-	*RHValue = (DataToReceive[0] << 8) | (DataToReceive[1]);
+	SmallBuffer = (DataToReceive[0] << 8) | (DataToReceive[1]);
 	
-	if(SHT25_VerifyCRC(*RHValue, DataToReceive[2]) == 1)
+	if(SHT25_VerifyCRC(SmallBuffer, DataToReceive[2]) == 1)
 	{
+		BigBuffer = ((12500l)*((uint32_t)(SmallBuffer)) - 39321600l)/(65536l);
+		
+		*RHValue = ((int16_t)BigBuffer);
 		return SHT25_RETURN_STATUS_OK;
 	}
 	return SHT25_RETURN_STATUS_CRC_ERROR;
