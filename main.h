@@ -65,6 +65,8 @@
 		#include "Board/at45db321d.h"
 		#include "Board/mpl115a1.h"
 		
+		#include "Board/datalogger.h"
+		
 	/* Macros: */
 		/** LED mask for the library LED driver, to indicate that the USB interface is not ready. */
 		#define LEDMASK_USB_NOTREADY      LEDS_LED1

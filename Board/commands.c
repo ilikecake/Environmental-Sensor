@@ -303,6 +303,26 @@ static int _F9_Handler (void)
 		printf_P(PSTR("Stat: 0x%02X\n"), AT45DB321D_WaitForReady());
 	}
 	
+	else if(RegToRead == 9)	//init datalogger
+	{
+		 Datalogger_Init();
+	}
+	
+	else if (RegToRead == 10)
+	{
+		Datalogger_AddDataSet(DataBuffer);
+	}
+	
+	else if (RegToRead == 11)
+	{
+		Datalogger_SaveDataToFlash();
+	}
+	
+	else if (RegToRead == 12)
+	{
+		Datalogger_FindLastDataSet(DATALOGGER_FIND_RESET_POINTERS);
+	}
+	
 	return 0;
 }
 
