@@ -33,35 +33,66 @@ uint8_t BufferInUse;		//Points to the current buffer to which we are saving data
 
 //I think these are useless
 uint8_t DataSetSizeBytes;	
-uint8_t DataSetsPerPage;
+//uint8_t DataSetsPerPage;
 
 uint8_t DataloggerInitalized = 0;
 
-void Datalogger_Init(void)
+void Datalogger_Init(uint8_t SetupByte)
 {
+	uint16_t StartingPage;
+	uint16_t StartingLocationInPage;
 	
 	DataSetSizeBytes = DATALOGGER_DATASET_SIZE + 2;
 	#if DATALOGGER_USE_CRC == 1
 	DataSetSizeBytes++;
 	#endif
-	
-	DataSetsPerPage = DATALOGGER_PAGE_SIZE/DataSetSizeBytes;
 
-	printf("Data set size: %u\n", DataSetSizeBytes);
-	printf("Sets per page: %u\n", DataSetsPerPage);
+	printf_P(PSTR("Data set size: %u\n"), DataSetSizeBytes);
+	printf_P(PSTR("Sets per page: %u\n"), DATALOGGER_PAGE_SIZE/DataSetSizeBytes);
 
-	printf("h1: 0x%02X\n", ((DataSetSizeBytes >> 4) | DATALOGGER_HEADER1_PREFIX) );
-	printf("h2: 0X%02X\n", ((uint8_t)(DataSetSizeBytes << 4) | DATALOGGER_HEADER2_SUFFIX));
+	//printf_P(PSTR("h1: 0x%02X\n"), ((DataSetSizeBytes >> 4) | DATALOGGER_HEADER1_PREFIX) );
+	//printf_P(PSTR("h2: 0X%02X\n"), ((uint8_t)(DataSetSizeBytes << 4) | DATALOGGER_HEADER2_SUFFIX));
 
 	//This should eventually search for preexisting data sets, but for now, initalize to zero
-	DataSetAddress = 0;
-	DataPageAddress = 0;
+	if((SetupByte & DATALOGGER_INIT_APPEND) == DATALOGGER_INIT_APPEND)
+	{
+		Datalogger_FindLastDataSet(&StartingPage, &StartingLocationInPage);
+		if((StartingPage > 0x1FFF) && (StartingLocationInPage > 0x1FFF))
+		{
+			if((SetupByte & DATALOGGER_INIT_RESTART_IF_FULL) == DATALOGGER_INIT_RESTART_IF_FULL)
+			{
+				DataSetAddress = 0;
+				DataPageAddress = 0;
+			}
+			else
+			{
+				DataloggerInitalized = 0;
+				return;
+			}
+		}
+		else
+		{
+			DataSetAddress = StartingLocationInPage;
+			DataPageAddress = StartingPage;
+		}
+	}
+	else
+	{
+		DataSetAddress = 0;
+		DataPageAddress = 0;
+	}
 	
 	BufferInUse = 1;
+	
+	printf_P(PSTR("Starting data collection in page 0x%04X at address 0x%04X\n"), DataPageAddress, DataSetAddress);
+	
+	
 	DataloggerInitalized = 1;
+	
 
 	return;
 }
+
 
 void Datalogger_AddDataSet(uint8_t DataSet[])
 {
@@ -121,9 +152,9 @@ void Datalogger_AddDataSet(uint8_t DataSet[])
 		DataSetAddress = 0;
 	}
 	
-	printf("BufferInUse: %u\n", BufferInUse);
-	printf("DataSetAddress: %u\n", DataSetAddress);
-	printf("DataPageAddress: %u\n", DataPageAddress);
+	printf_P(PSTR("BufferInUse: %u\n"), BufferInUse);
+	printf_P(PSTR("DataSetAddress: %u\n"), DataSetAddress);
+	printf_P(PSTR("DataPageAddress: %u\n"), DataPageAddress);
 	
 	return;
 }
@@ -142,8 +173,7 @@ void Datalogger_SaveDataToFlash(void)
 
 //The page should always start with a dataset header.
 //The pages should always start at 0 and go up
-//it might make sense to combine this with the init function.
-void Datalogger_FindLastDataSet(uint8_t CommandSet)
+void Datalogger_FindLastDataSet(uint16_t *PageNumber, uint16_t *AddressInPage)
 {
 	uint16_t PageToLook = 0;
 	uint16_t AddressToLook = 0;
@@ -166,7 +196,7 @@ void Datalogger_FindLastDataSet(uint8_t CommandSet)
 	
 	while(PageToLook <= 0x1FFF)
 	{
-		printf_P(PSTR("Looking for data in page 0x%04X at address 0x%04X using buffer %u\n"), PageToLook, AddressToLook, TempBuffer);
+		//printf_P(PSTR("Looking for data in page 0x%04X at address 0x%04X using buffer %u\n"), PageToLook, AddressToLook, TempBuffer);
 		
 		//Retrieve the memory page
 		AT45DB321D_CopyPageToBuffer(TempBuffer, PageToLook);
@@ -177,10 +207,11 @@ void Datalogger_FindLastDataSet(uint8_t CommandSet)
 		{
 			AT45DB321D_BufferRead(TempBuffer, AddressToLook, TempVal, 2);
 			TempDataSetSize = ((TempVal[0] & 0x0F) << 4) | ((TempVal[1] & 0xF0) >> 4);
-		
+			//printf_P(PSTR("0x%02X 0x%02X"), TempVal[0], TempVal[1]);
+			
 			if( ((TempVal[0] & 0xF0) == DATALOGGER_HEADER1_PREFIX) && ((TempVal[1] & 0x0F) == DATALOGGER_HEADER2_SUFFIX) && (TempDataSetSize > 0) )
 			{
-				printf("Header found at 0x%04X of size %u\n", AddressToLook, TempDataSetSize);
+				//printf_P(PSTR("Header found at 0x%04X of size %u\n"), AddressToLook, TempDataSetSize);
 				AddressToLook += TempDataSetSize;
 			}
 			else
@@ -203,42 +234,109 @@ void Datalogger_FindLastDataSet(uint8_t CommandSet)
 	
 	if(PageToLook == 0x1FFF)
 	{
-		printf_P(PSTR("The device is full\n"));
+		//printf_P(PSTR("The device is full\n"));
+		
+		*PageNumber = 0xFFFF;
+		*AddressInPage = 0xFFFF;
+		
 		return;
 	}
-	if( (PageToLook = 0x00) && (AddressToLook == 0x00) )
+	if( (PageToLook == 0x00) && (AddressToLook == 0x00) )
 	{
-		printf_P(PSTR("The device is empty\n"));
+		//printf_P(PSTR("The device is empty\n"));
+		
+		*PageNumber = 0x0000;
+		*AddressInPage = 0x0000;
+		
 		return;
 	}
 	
-	printf_P(PSTR("Final data header is in page 0x%04X at address 0x%04X and is of size %u.\n"), PageToLook, AddressToLook-TempDataSetSize, TempDataSetSize);
-	printf_P(PSTR("The next dataset should start at address 0x%04X\n"), AddressToLook);
+	//printf_P(PSTR("Final data header is in page 0x%04X. New data should start at location 0x%04X\n"), PageToLook, AddressToLook);
 	
+	//printf_P(PSTR("Final data header is in page 0x%04X at address 0x%04X and is of size %u.\n"), PageToLook, AddressToLook-TempDataSetSize, TempDataSetSize);
+	//printf_P(PSTR("The next dataset should start at address 0x%04X\n"), AddressToLook);
 	
-	if( (CommandSet & DATALOGGER_FIND_RESET_POINTERS) == DATALOGGER_FIND_RESET_POINTERS)
-	{
-		//Set the pointers
-		DataSetAddress = AddressToLook;
-		DataPageAddress = PageToLook;
-		BufferInUse = 1;
-		
-		//Load the page into the buffer
-		AT45DB321D_CopyPageToBuffer(BufferInUse, DataPageAddress);
-		AT45DB321D_WaitForReady();
-		
-		printf_P(PSTR("Page pointer set to  0x%04X\n"), DataPageAddress);
-		printf_P(PSTR("Address pointer set to  0x%04X\n"), DataSetAddress);
-		
-		DataloggerInitalized = 1;
-		
-		
-	}
-	
-	
-	
+	*PageNumber = PageToLook;
+	*AddressInPage = AddressToLook;
 	
 	return;
 }
+
+void Datalogger_ReadBackData(uint16_t NumberOfDataSets)
+{
+	uint16_t PageToLook = 0;
+	uint16_t AddressToLook = 0;
+	uint8_t TempBuffer = 0;
+	uint8_t i;
+	
+	uint8_t TempVal[2];
+	uint8_t TempDataSetSize = 0;
+	
+	//Select the buffer that is not in use
+	if(BufferInUse == 1)
+	{
+		TempBuffer = 2;
+	}
+	else
+	{
+		TempBuffer = 1;
+	}
+	
+	//printf_P(PSTR("Looking for data in page 0x%04X at address 0x%04X using buffer %u\n"), PageToLook, AddressToLook, TempBuffer);
+	
+	while(PageToLook <= 0x1FFF)
+	{
+		//printf_P(PSTR("Looking for data in page 0x%04X at address 0x%04X using buffer %u\n"), PageToLook, AddressToLook, TempBuffer);
+		
+		//Retrieve the memory page
+		AT45DB321D_CopyPageToBuffer(TempBuffer, PageToLook);
+		AT45DB321D_WaitForReady();
+		
+		//Look for the data start 
+		while(AddressToLook <= DATALOGGER_PAGE_SIZE)
+		{
+			AT45DB321D_BufferRead(TempBuffer, AddressToLook, TempVal, 2);
+			TempDataSetSize = ((TempVal[0] & 0x0F) << 4) | ((TempVal[1] & 0xF0) >> 4);
+			//printf_P(PSTR("0x%02X 0x%02X"), TempVal[0], TempVal[1]);
+			
+			if( ((TempVal[0] & 0xF0) == DATALOGGER_HEADER1_PREFIX) && ((TempVal[1] & 0x0F) == DATALOGGER_HEADER2_SUFFIX) && (TempDataSetSize > 0) )
+			{
+				NumberOfDataSets--;
+				for(i=2; i<TempDataSetSize; i++)
+				{
+					AT45DB321D_BufferRead(TempBuffer, AddressToLook+i, TempVal, 1);
+					AT45DB321D_WaitForReady();
+					printf_P(PSTR("0x%02X, "), TempVal[0]);
+				}
+				printf_P(PSTR("\b\b \b\n"));
+				if(NumberOfDataSets == 0)
+				{
+					return;
+				}
+				AddressToLook += TempDataSetSize;
+			}
+			else
+			{
+				break;
+			}
+		}
+		
+		//Check if the page is full
+		if((AddressToLook + TempDataSetSize) > DATALOGGER_PAGE_SIZE)
+		{
+			PageToLook++;
+			AddressToLook = 0;
+		}
+		else
+		{
+			break;
+		}
+	}
+
+
+
+	return;
+}
+
 
 /** @} */

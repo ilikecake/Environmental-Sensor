@@ -305,7 +305,7 @@ static int _F9_Handler (void)
 	
 	else if(RegToRead == 9)	//init datalogger
 	{
-		 Datalogger_Init();
+		 Datalogger_Init(DATALOGGER_INIT_APPEND | DATALOGGER_INIT_RESTART_IF_FULL);
 	}
 	
 	else if (RegToRead == 10)
@@ -320,7 +320,7 @@ static int _F9_Handler (void)
 	
 	else if (RegToRead == 12)
 	{
-		Datalogger_FindLastDataSet(DATALOGGER_FIND_RESET_POINTERS);
+		Datalogger_ReadBackData(5);
 	}
 	
 	return 0;

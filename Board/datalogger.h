@@ -34,10 +34,13 @@
 #define DATALOGGER_USE_CRC				0
 
 
+//Initalization options
+#define DATALOGGER_INIT_APPEND				0x01		//Search for previously written data and append.
+#define DATALOGGER_INIT_OVERWRITE			0x02		//Restart data collection at page 0, address 0.
+#define DATALOGGER_INIT_RESTART_IF_FULL		0x04		//If the device is full, restart data collection at page 0, address 0.
+#define DATALOGGER_INIT_STOP_IF_FULL		0x08		//If the device is full, do not start collecting data.
 
-#define DATALOGGER_FIND_RESET_POINTERS		0x01	//Tells the 'Datalogger_FindLastDataSet' function to reset the pointers after identifying the last data set
-#define DATALOGGER_FIND_ERASE_DATA			0x02	//Tells the 'Datalogger_FindLastDataSet' function to erase the data that it finds
-#define DATALOGGER_FIND_ASSUME_DATA_SIZE	0x04	//Tells the 'Datalogger_FindLastDataSet' function to assume the current data set size for all found data (not recommended)
+
 
 
 #define DATALOGGER_HEADER1_PREFIX	0xA0
@@ -63,7 +66,7 @@
  *  Find the size of the dataset and save it to a global variable
  *	Also calculate how many datasets we can store in a page
  */
-void Datalogger_Init(void);
+void Datalogger_Init(uint8_t SetupByte);
 
 /** Add a set of data to be saved. This function will automatically write the data to flash when a page gets full.*/
 void Datalogger_AddDataSet(uint8_t DataSet[]);
@@ -72,10 +75,13 @@ void Datalogger_AddDataSet(uint8_t DataSet[]);
 void Datalogger_SaveDataToFlash(void);
 
 /** Locate the last set of data written to flash */
-void Datalogger_FindLastDataSet(uint8_t CommandSet);
+void Datalogger_FindLastDataSet(uint16_t *PageNumber, uint16_t *AddressInPage);
+
+/** Writes a given number of datasets to the screen using prinf */
+void Datalogger_ReadBackData(uint16_t NumberOfDataSets);
 
 //how to do this?
-void Datalogger_RetrieveDataFromFlash(uint8_t DataSet[]);
+uint8_t Datalogger_RetrieveDataFromFlash(uint16_t *DataPageNumber, uint16_t DataNumberInPage, uint8_t DataSet[]);
 
 
 
