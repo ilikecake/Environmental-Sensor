@@ -159,8 +159,10 @@ void DelayMS(uint16_t ms)
 
 void GetTime( TimeAndDate *TimeToReturn )
 {
-	//The rest of this struct is not used right now
+	TimeToReturn->year 	= 	TheTime.year;
+	TimeToReturn->month = 	TheTime.month;
 	TimeToReturn->day 	= 	TheTime.day;
+	TimeToReturn->dow 	= 	TheTime.dow;
 	TimeToReturn->hour 	= 	TheTime.hour;
 	TimeToReturn->min 	= 	TheTime.min;
 	TimeToReturn->sec 	= 	TheTime.sec;
@@ -169,10 +171,67 @@ void GetTime( TimeAndDate *TimeToReturn )
 
 void SetTime( TimeAndDate TimeToSet )
 {
-	TheTime.day = TimeToSet.day;
-	TheTime.hour = TimeToSet.hour;
-	TheTime.min = TimeToSet.min;
-	TheTime.sec = TimeToSet.sec;
+	uint8_t NumberOfDaysPerMonth;
+
+	//hour must be less than 24
+	if(TimeToSet.hour < 24)
+	{
+		TheTime.hour = TimeToSet.hour;
+	}
+	
+	//minutes must be less than 60
+	if(TimeToSet.min < 60)
+	{
+		TheTime.min = TimeToSet.min;
+	}
+	
+	//Seconds must be less than 60
+	if(TimeToSet.sec < 60)
+	{
+		TheTime.sec = TimeToSet.sec;
+	}
+	
+	//months must be 1-12
+	if((TimeToSet.month > 0) && (TimeToSet.month < 13))
+	{
+		TheTime.month = TimeToSet.month;
+	}
+	
+	//day of the week must be 1-7
+	if((TimeToSet.dow > 0) && (TimeToSet.dow < 8))
+	{
+		TheTime.dow = TimeToSet.dow;
+	}
+	
+	//Year cannot be zero
+	if(TimeToSet.year != 0)
+	{
+		TheTime.year = TimeToSet.year;
+	}
+	
+	//Check for leap year, and determine how many days per month.
+	if(TheTime.month == 4)
+	{
+		if(IsLeapYear(TheTime.year) == 1)
+		{
+			NumberOfDaysPerMonth = 29;
+		}
+		else
+		{
+			NumberOfDaysPerMonth = 28;
+		}
+	}
+	else
+	{
+		NumberOfDaysPerMonth = DaysPerMonth(TheTime.month);
+	}
+	
+	//days must be valid
+	if((TimeToSet.day > 0) && (TimeToSet.day < (NumberOfDaysPerMonth + 1)))
+	{
+		TheTime.day = TimeToSet.day;
+	}
+
 	return;
 }
 
@@ -257,13 +316,58 @@ void StopTimer(void)
 }
 
 
+uint8_t DaysPerMonth(uint8_t MonthNumber)
+{
+	if((MonthNumber > 12) || (MonthNumber < 1))
+	{
+		return 0;
+	}
 
+	if(MonthNumber == 2)
+	{
+		return 28;
+	}
+	else if((MonthNumber == 4) ||(MonthNumber == 6) ||(MonthNumber == 9) ||(MonthNumber == 12))
+	{
+		return 30;
+	}
+	return 31;
+}
+
+uint8_t IsLeapYear(uint16_t TheYear)
+{
+	if((TheYear % 4) == 0)
+	{
+		if((TheYear % 100) == 0)
+		{
+			if((TheYear % 400) == 0)
+			{
+				//Year is divisible by 4, 100, and 400. The year is a leap year
+				return 1;			
+			}
+			else
+			{
+				//Year is divisible by 4 and 100, but not 400. The year is not a leap year.
+				return 0;
+			}
+		}
+		else
+		{
+			//Year is divisible by 4 but not 100. The year is a leap year
+			return 1;
+		}
+	}
+	
+	//Year is not divisible by 4. The year is not a leap year.
+	return 0;
+}
 
 //Timer interrupt 0 for basic timing stuff
 ISR(TIMER0_COMPA_vect)
 {
 	uint16_t inByte;
 	ElapsedMS++;
+	uint8_t DPM;
 	
 	//Handle USB stuff
 	//This happens every ~8 ms
@@ -296,7 +400,33 @@ ISR(TIMER0_COMPA_vect)
 				{
 					TheTime.hour = 0;
 					TheTime.day += 1;
-					//This is gonna get complicated at this point. For now I will ignore this. 
+					
+					//Determine the number of days in the month.
+					if(TheTime.month == 2)
+					{
+						if(IsLeapYear(TheTime.year) == 1)
+						{
+							DPM = 29;
+						}
+						else
+						{
+							DPM = 28;
+						}
+					}
+					else
+					{
+						DPM = DaysPerMonth(TheTime.month);
+					}
+					if(TheTime.day > DPM)
+					{
+						TheTime.day = 0;
+						TheTime.month += 1;
+						if(TheTime.month > 12)
+						{
+							TheTime.month = 0;
+							TheTime.year += 1;
+						}
+					}
 				}
 			}
 		}

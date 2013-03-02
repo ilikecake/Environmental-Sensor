@@ -46,7 +46,11 @@ void StopTimer(void);
 
 void LED(uint8_t LEDState);
 
+//Returns 1 if the year is a leap year
+uint8_t IsLeapYear(uint16_t TheYear);
 
+//Returns the number of days in the month. Will always return 28 for february, aditional checks will be needed to correct for leap years.
+uint8_t DaysPerMonth(uint8_t MonthNumber);
 
 #endif
 

@@ -54,7 +54,7 @@ const char _F3_HELPTEXT[] PROGMEM 		= "regread <register #>";
 static int _F4_Handler (void);
 const char _F4_NAME[] PROGMEM 			= "settime";
 const char _F4_DESCRIPTION[] PROGMEM 	= "Set the time";
-const char _F4_HELPTEXT[] PROGMEM 		= "settime <day> <hr> <min> <sec>";
+const char _F4_HELPTEXT[] PROGMEM 		= "settime <year> <month> <day> <dow> <hr> <min> <sec>";
 
 //Read the time from the internal timer
 static int _F5_Handler (void);
@@ -104,7 +104,7 @@ const CommandListItem AppCommandList[] PROGMEM =
 	{ _F1_NAME,		1,  1,	_F1_Handler,	_F1_DESCRIPTION,	_F1_HELPTEXT	},		//led
 	{ _F2_NAME, 	0,  0,	_F2_Handler,	_F2_DESCRIPTION,	_F2_HELPTEXT	},		//dfu
 	{ _F3_NAME, 	1,  1,	_F3_Handler,	_F3_DESCRIPTION,	_F3_HELPTEXT	},		//regread
-	{ _F4_NAME, 	4,  4,	_F4_Handler,	_F4_DESCRIPTION,	_F4_HELPTEXT	},		//settime
+	{ _F4_NAME, 	7,  7,	_F4_Handler,	_F4_DESCRIPTION,	_F4_HELPTEXT	},		//settime
 	{ _F5_NAME, 	0,  0,	_F5_Handler,	_F5_DESCRIPTION,	_F5_HELPTEXT	},		//gettime
 	{ _F6_NAME, 	2,  2,	_F6_Handler,	_F6_DESCRIPTION,	_F6_HELPTEXT	},		//writereg	
 	{ _F8_NAME,		0,  0,	_F8_Handler,	_F8_DESCRIPTION,	_F8_HELPTEXT	},		//data
@@ -164,16 +164,16 @@ static int _F3_Handler (void)
 static int _F4_Handler (void)
 {
 	TimeAndDate CurrentTime;
-	
-	CurrentTime.month	= 0;
-	CurrentTime.day		= argAsInt(1);
-	CurrentTime.year	= 0;
-	CurrentTime.hour	= argAsInt(2);
-	CurrentTime.min		= argAsInt(3);
-	CurrentTime.sec		= argAsInt(4);
-	CurrentTime.dow		= 0;
-	
+	//<year> <month> <day> <dow> <hr> <min> <sec>
+	CurrentTime.year	= argAsInt(1);
+	CurrentTime.month	= argAsInt(2);
+	CurrentTime.day		= argAsInt(3);
+	CurrentTime.dow		= argAsInt(4);
+	CurrentTime.hour	= argAsInt(5);
+	CurrentTime.min		= argAsInt(6);
+	CurrentTime.sec		= argAsInt(7);
 	SetTime(CurrentTime);
+	printf_P(PSTR("Setting %02u/%02u/%04u %02u:%02u:%02u"), CurrentTime.month, CurrentTime.day, CurrentTime.year, CurrentTime.hour, CurrentTime.min, CurrentTime.sec);
 	
 	printf_P(PSTR("Done\n"));
 	return 0;
@@ -185,7 +185,9 @@ static int _F5_Handler (void)
 	TimeAndDate CurrentTime;
 	
 	GetTime(&CurrentTime);
-	printf_P(PSTR("%02u Days %02u:%02u:%02u\n"), CurrentTime.day, CurrentTime.hour, CurrentTime.min, CurrentTime.sec);
+	
+	printf_P(PSTR("%02u/%02u/%04u %02u:%02u:%02u\n"), CurrentTime.month, CurrentTime.day, CurrentTime.year, CurrentTime.hour, CurrentTime.min, CurrentTime.sec);
+	//printf_P(PSTR("%02u Days %02u:%02u:%02u\n"), CurrentTime.day, CurrentTime.hour, CurrentTime.min, CurrentTime.sec);
 
 	return 0;
 }
@@ -212,8 +214,54 @@ static int _F6_Handler (void)
 static int _F8_Handler (void)
 {
 	uint16_t LS_Data[4];
-
+	TimeAndDate CurrentTime;
+	int16_t Pressure_kPa;
+	int16_t TemperatureData;
+	int16_t RHData;
+	//int16_t RecievedData;
+	uint8_t stat;
+	
 	//StartTimer();
+	
+	GetTime(&CurrentTime);
+	printf_P(PSTR("%02u Days %02u:%02u:%02u\n"), CurrentTime.day, CurrentTime.hour, CurrentTime.min, CurrentTime.sec);
+	
+	//Read temperature
+	stat = SHT25_ReadTemp(&TemperatureData);
+	if(stat == SHT25_RETURN_STATUS_OK)
+	{
+		printf_P(PSTR("Temp %d.%02u C\n"), TemperatureData/100, TemperatureData%100);
+	}
+	else if(stat == SHT25_RETURN_STATUS_CRC_ERROR)
+	{
+		printf_P(PSTR("CRC Error\n"));
+	}
+	else
+	{
+		printf_P(PSTR("Timeout\n"));
+	}
+	
+	//Read RH
+	stat = SHT25_ReadRH(&RHData);
+	if(stat == SHT25_RETURN_STATUS_OK)
+	{
+		printf_P(PSTR("RH: %u.%02u%%\n"), RHData/100, RHData%100);
+	}
+	else if(stat == SHT25_RETURN_STATUS_CRC_ERROR)
+	{
+		printf_P(PSTR("CRC Error\n"));
+	}
+	else
+	{
+		printf_P(PSTR("Timeout\n"));
+	}
+	
+	
+	//Current barometric pressure
+	MPL115A1_GetPressure(&Pressure_kPa);
+	printf_P(PSTR("Pressure: %u.%u kPa\n"), ((int16_t)Pressure_kPa)>>4, ((((int16_t)Pressure_kPa)&0x000F)*1000)/(16) );
+	
+	
 	if(tcs3414_GetData(&LS_Data[0], &LS_Data[1], &LS_Data[2], &LS_Data[3]) == 0)
 	{
 		printf_P(PSTR("red:	0x%04X\n"), LS_Data[0]);
@@ -221,6 +269,9 @@ static int _F8_Handler (void)
 		printf_P(PSTR("blue:	0x%04X\n"), LS_Data[2]);
 		printf_P(PSTR("clear:	0x%04X\n"), LS_Data[3]);
 	}
+	
+	
+	
 	//StopTimer();
 
 	return 0;
