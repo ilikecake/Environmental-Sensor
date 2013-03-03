@@ -175,7 +175,7 @@ static int _F4_Handler (void)
 	SetTime(CurrentTime);
 	printf_P(PSTR("Setting %02u/%02u/%04u %02u:%02u:%02u"), CurrentTime.month, CurrentTime.day, CurrentTime.year, CurrentTime.hour, CurrentTime.min, CurrentTime.sec);
 	
-	printf_P(PSTR("Done\n"));
+	printf_P(PSTR("......Done\n"));
 	return 0;
 }
 
@@ -213,7 +213,20 @@ static int _F6_Handler (void)
 //Get a set of data from the devices
 static int _F8_Handler (void)
 {
-	uint16_t LS_Data[4];
+	uint8_t DataSet[18];
+	uint8_t i;
+	
+	
+	GetDataSet(DataSet);
+	
+	
+	for(i=0;i<19;i++)
+	{
+		printf_P(PSTR("%u: 0x%02X\n"), i, DataSet[i]);
+	}
+	
+	
+	/*uint16_t LS_Data[4];
 	TimeAndDate CurrentTime;
 	int16_t Pressure_kPa;
 	int16_t TemperatureData;
@@ -273,7 +286,7 @@ static int _F8_Handler (void)
 	
 	
 	//StopTimer();
-
+*/
 	return 0;
 }
 

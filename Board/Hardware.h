@@ -52,6 +52,8 @@ uint8_t IsLeapYear(uint16_t TheYear);
 //Returns the number of days in the month. Will always return 28 for february, aditional checks will be needed to correct for leap years.
 uint8_t DaysPerMonth(uint8_t MonthNumber);
 
+uint8_t GetDataSet(uint8_t DataSet[]);
+
 #endif
 
 /** @} */

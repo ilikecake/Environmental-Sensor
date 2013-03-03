@@ -76,6 +76,11 @@ static FILE USBSerialStream;
  */
 int main(void)
 {
+	uint8_t DataToSave[18];
+	uint8_t MinToWaitFor = 0;
+	uint8_t MinToSkip = 5;
+	TimeAndDate CurrentTime;
+	
 	HardwareInit();
 
 	/* Create a regular character stream for the interface so that it can be used with the stdio.h functions */
@@ -87,6 +92,21 @@ int main(void)
 	for (;;)
 	{
 		RunCommand();
+		
+		//Determine if it is time to take another data set
+		/*
+		GetTime(&CurrentTime);
+		if(CurrentTime.min == MinToWaitFor)
+		{
+			//take data set
+			MinToWaitFor += MinToSkip;
+		
+		
+		
+		
+		
+		Datalogger_AddDataSet(DataBuffer);
+		*/
 	}
 }
 
